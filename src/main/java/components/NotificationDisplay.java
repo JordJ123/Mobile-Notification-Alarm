@@ -1,3 +1,5 @@
+package components;
+
 import com.phidget22.PhidgetException;
 import phidget.ExtendedLCD;
 
@@ -20,6 +22,7 @@ public class NotificationDisplay {
      */
     public NotificationDisplay(int lcdSerialNumber) throws PhidgetException {
         setLcd(new ExtendedLCD(lcdSerialNumber));
+        displayNotifications(0);
     }
 
     /**
@@ -44,7 +47,13 @@ public class NotificationDisplay {
      * @throws PhidgetException Thrown if error with a phidget
      */
     public void displayNotifications(int number) throws PhidgetException {
-        getLcd().writeText(String.format(MESSAGE, number));
+        String message;
+        if (number != 1) {
+            message = MESSAGE;
+        } else {
+            message = MESSAGE.substring(0, MESSAGE.length() - 1);
+        }
+        getLcd().writeText(String.format(message, number));
     }
 
 

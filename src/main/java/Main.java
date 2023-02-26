@@ -1,5 +1,9 @@
 import com.phidget22.PhidgetException;
+import components.NotificationDisplay;
 import phidget.PhidgetHandler;
+import socket.ServerSocket;
+import socket.Socket;
+
 import java.io.IOException;
 
 /**
@@ -11,6 +15,25 @@ public class Main {
     //CONSTANTS
     private static final int LCD_SERIAL_NUMBER = 39834;
 
+    //Static Attributes
+    private static int notifications = 0;
+
+    /**
+     * Sets the notifications
+     * @param notifications Notifications
+     */
+    private static void setNotifications(int notifications) {
+        Main.notifications = notifications;
+    }
+
+    /**
+     * Gets the notifications.
+     * @return Notifications
+     */
+    private static int getNotifications() {
+        return notifications;
+    }
+
     /**
      * Main method.
      * @param args Command line arguments
@@ -21,9 +44,19 @@ public class Main {
         throws IOException, PhidgetException {
         NotificationDisplay notificationDisplay = new NotificationDisplay(
             LCD_SERIAL_NUMBER);
-        notificationDisplay.displayNotifications(3);
+        ServerSocket serverSocket = new ServerSocket(Socket.TEST_PORT,
+            message -> {
+            try {
+                int change = Integer.parseInt(message);
+                setNotifications(getNotifications() + change);
+                notificationDisplay.displayNotifications(getNotifications());
+            } catch (PhidgetException e) {
+                e.printStackTrace();
+            }
+        });
         System.in.read();
         PhidgetHandler.closeAllPhidgets();
+        serverSocket.close();
     }
 
 }

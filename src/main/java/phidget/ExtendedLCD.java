@@ -29,6 +29,7 @@ public class ExtendedLCD extends LCD {
      * @throws PhidgetException Thrown if error with the phidget
      */
     public void writeText(String text) throws PhidgetException {
+        clear();
         writeText(LCDFont.DIMENSIONS_6X12, 0, 0, text);
     }
 
