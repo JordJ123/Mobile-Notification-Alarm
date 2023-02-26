@@ -11,6 +11,9 @@ import java.util.ArrayList;
  */
 public class PhidgetHandler {
 
+    //CONSTANTS
+    private static final int TIMEOUT = 5000;
+
     //Static Attributes
     private static ArrayList<Phidget> phidgets = new ArrayList<>();
 
@@ -28,11 +31,34 @@ public class PhidgetHandler {
      * @param serialNumber Serial number of the phidget
      * @throws PhidgetException Thrown if error with the phidget
      */
-    public static void handleWidget(@NotNull Phidget phidget,
-        int serialNumber)
-        throws PhidgetException {
+    public static void handlePhidget(@NotNull Phidget phidget,
+        int serialNumber) throws PhidgetException {
+        phidgetHandle(phidget, serialNumber);
+    }
+
+    /**
+     * Handles and sets-up the given phidget that has a channel.
+     * @param phidget Phidget to bee handled and set-up
+     * @param serialNumber Serial number of the phidget
+     * @param channel Channel of the output
+     * @throws PhidgetException Thrown if error with the phidget
+     */
+    public static void handlePhidget(@NotNull Phidget phidget,
+        int serialNumber, int channel) throws PhidgetException {
+        phidget.setChannel(channel);
+        phidgetHandle(phidget, serialNumber);
+    }
+
+    /**
+     * Handles all phidgets.
+     * @param phidget Phidget to bee handled and set-up
+     * @param serialNumber Serial number of the phidget
+     * @throws PhidgetException Thrown if error with the phidget
+     */
+    private static void phidgetHandle(@NotNull Phidget phidget,
+        int serialNumber) throws PhidgetException {
         phidget.setDeviceSerialNumber(serialNumber);
-        phidget.open(5000);
+        phidget.open(TIMEOUT);
         getPhidgets().add(phidget);
     }
 

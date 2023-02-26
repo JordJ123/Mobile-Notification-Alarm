@@ -1,3 +1,4 @@
+import com.google.gson.Gson;
 import socket.ClientSocket;
 import socket.Socket;
 import java.io.IOException;
@@ -9,7 +10,8 @@ import java.io.IOException;
 public class AppSimulator {
 
     //CONSTANTS
-    private static final int TEST_DATA = 1;
+    private static final Notification[] ADD_DATA = {};
+    private static final Notification[] REMOVE_DATA = {};
 
     /**
      * Main method.
@@ -18,7 +20,7 @@ public class AppSimulator {
      */
     public static void main(String[] args) throws IOException {
         new ClientSocket(Socket.TEST_HOSTNAME, Socket.TEST_PORT,
-            Integer.toString(TEST_DATA));
+            new Gson().toJson(new Notification[][]{ADD_DATA, REMOVE_DATA}));
     }
 
 }

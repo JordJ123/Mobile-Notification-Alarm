@@ -27,12 +27,12 @@ public class ServerSocket extends Socket {
             try {
                 while (true) {
                     java.net.Socket clientSocket = getSocket().accept();
-                    BufferedReader in = new BufferedReader(
-                        new InputStreamReader(clientSocket.getInputStream()));
                     PrintWriter out = new PrintWriter(
                         clientSocket.getOutputStream(), true);
-                    serverMessageRunnable.run(in.readLine());
+                    BufferedReader in = new BufferedReader(
+                        new InputStreamReader(clientSocket.getInputStream()));
                     out.println("success");
+                    serverMessageRunnable.run(in.readLine());
                     in.close();
                     out.close();
                 }
