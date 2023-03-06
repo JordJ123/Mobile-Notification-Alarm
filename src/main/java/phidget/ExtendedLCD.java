@@ -18,7 +18,7 @@ public class ExtendedLCD extends LCD {
         super();
         PhidgetHandler.handlePhidget(this, serialNumber);
         setAutoFlush(true);
-        setBacklight(0.5);
+        setBacklight(1);
         setContrast(0.5);
     }
 

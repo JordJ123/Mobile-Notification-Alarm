@@ -1,10 +1,9 @@
 package components;
 
 import com.phidget22.LCDFont;
-import com.phidget22.LCDScreenSize;
 import com.phidget22.PhidgetException;
 import phidget.ExtendedLCD;
-import phidget.ExtendedSlider;
+import phidget.slider.ExtendedSlider;
 
 /**
  * Device that displays the notifications.
@@ -17,17 +16,34 @@ public class NotificationDisplay {
 
     //Attributes
     private ExtendedLCD lcd;
+    private ExtendedSlider slider;
 
     /**
      * Creates the notification display.
      * @param lcd Lcd
+     * @param slider Slider
      * @throws PhidgetException Thrown if error with a phidget
      */
-    public NotificationDisplay(ExtendedLCD lcd)
+    public NotificationDisplay(ExtendedLCD lcd, ExtendedSlider slider)
         throws PhidgetException {
         setLcd(lcd);
+        setSlider(slider);
         displayNotifications(0);
         getLcd().writeText(LCDFont.DIMENSIONS_6X12, 4, 1, "Dismiss All");
+        getSlider().voltageRatioChangeListener(
+            event -> {
+                try {
+                    System.out.println(event.getVoltageRatio());
+                    getLcd().setContrast(event.getVoltageRatio());
+                    if (event.getVoltageRatio() <= 0.999) {
+                        getLcd().setBacklight(1);
+                    } else {
+                        getLcd().setBacklight(0);
+                    }
+                } catch (PhidgetException e) {
+                    e.printStackTrace();
+                }
+            });
     }
 
     /**
@@ -39,11 +55,27 @@ public class NotificationDisplay {
     }
 
     /**
-     * Gets the lcd phidget.
-     * @return Lcd phidget
+     * Sets the slider.
+     * @param slider Slider
+     */
+    private void setSlider(ExtendedSlider slider) {
+        this.slider = slider;
+    }
+
+    /**
+     * Gets the LCD.
+     * @return LCD
      */
     private ExtendedLCD getLcd() {
         return lcd;
+    }
+
+    /**
+     * Gets the slider.
+     * @return Slider
+     */
+    private ExtendedSlider getSlider() {
+        return slider;
     }
 
     /**

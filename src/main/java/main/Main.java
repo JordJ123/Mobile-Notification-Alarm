@@ -6,6 +6,7 @@ import components.MiddleButton;
 import components.NotificationDisplay;
 import org.jetbrains.annotations.NotNull;
 import phidget.*;
+import phidget.slider.ExtendedSlider;
 import socket.ServerSocket;
 import socket.Socket;
 import java.io.IOException;
@@ -23,6 +24,7 @@ public class Main {
     private static final int BUTTON_2_CHANNEL = 7;
     private static final int BUZZER_CHANNEL = 7;
     private static final int LED_CHANNEL = 0;
+    private static final int SLIDER_CHANNEL = 0;
     private static final int VIBRATOR_CHANNEL = 1;
 
     //VALUES
@@ -181,9 +183,10 @@ public class Main {
         setMiddleButton(new MiddleButton(LCD_SERIAL_NUMBER, BUTTON_2_CHANNEL));
         setBuzzer(new ExtendedBuzzer(LCD_SERIAL_NUMBER, BUZZER_CHANNEL));
         setLed(new ExtendedLED(LCD_SERIAL_NUMBER, LED_CHANNEL));
-        setNotificationDisplay(new NotificationDisplay(new ExtendedLCD(
-            LCD_SERIAL_NUMBER)));
-        setVibrator(new ExtendedVibrator(LCD_SERIAL_NUMBER, VIBRATOR_CHANNEL));
+        setNotificationDisplay(new NotificationDisplay(
+            new ExtendedLCD(LCD_SERIAL_NUMBER),
+            new ExtendedSlider(LCD_SERIAL_NUMBER, SLIDER_CHANNEL)));
+//        setVibrator(new ExtendedVibrator(LCD_SERIAL_NUMBER, VIBRATOR_CHANNEL));
 
         //Sets the code for the alarm
         setServerSocket(new ServerSocket(Socket.TEST_PORT,
@@ -233,10 +236,10 @@ public class Main {
             }
             if (notification.getIsActiveNotification()) {
                 getLed().setDutyCycle(1);
-                getVibrator().setDutyCycle(1);
+//                getVibrator().setDutyCycle(1);
                 getBuzzer().buzz(BUZZ_DURATION);
                 getLed().setDutyCycle(0);
-                getVibrator().setDutyCycle(0);
+//                getVibrator().setDutyCycle(0);
             }
         }
         getReadWriteLock().writeLock().unlock();
