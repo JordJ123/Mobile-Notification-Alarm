@@ -10,7 +10,7 @@ import com.phidget22.PhidgetException;
 public class ExtendedBuzzer extends DigitalOutput {
 
     /**
-     * Creates a buzzer.
+     * Creates an extended buzzer.
      * @param serialNumber Serial number of the device
      * @param channel Channel of the output
      * @throws PhidgetException Thrown if error with the phidget

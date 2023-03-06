@@ -1,9 +1,7 @@
 package socket;
 
-import java.io.BufferedReader;
 import java.io.IOException;
-import java.io.InputStreamReader;
-import java.io.PrintWriter;
+import java.util.ArrayList;
 
 /**
  * Socket for a server.
@@ -12,29 +10,24 @@ import java.io.PrintWriter;
 public class ServerSocket extends Socket {
 
     //Attributes
-    private java.net.ServerSocket socket;
+    private java.net.ServerSocket serverSocket;
+    private ArrayList<Connection> clientConnections = new ArrayList<>();
 
     /**
      * Creates a server socket.
      * @param port Port number that represents it
      * @throws IOException Throws if error with input/output
      */
-    public ServerSocket(int port, ServerMessageRunnable serverMessageRunnable)
+    public ServerSocket(int port,
+        InputRunnable inputRunnable)
         throws IOException {
         super(port);
-        setSocket(new java.net.ServerSocket(port));
+        setServerSocket(new java.net.ServerSocket(port));
         new Thread(() -> {
             try {
                 while (true) {
-                    java.net.Socket clientSocket = getSocket().accept();
-                    PrintWriter out = new PrintWriter(
-                        clientSocket.getOutputStream(), true);
-                    BufferedReader in = new BufferedReader(
-                        new InputStreamReader(clientSocket.getInputStream()));
-                    out.println("success");
-                    serverMessageRunnable.run(in.readLine());
-                    in.close();
-                    out.close();
+                    getClientConnections().add(new Connection(
+                        getServerSocket().accept(), inputRunnable));
                 }
             } catch (IOException e) {
                 e.printStackTrace();
@@ -44,18 +37,36 @@ public class ServerSocket extends Socket {
 
     /**
      * Sets the socket.
-     * @param socket Socket
+     * @param serverSocket Socket
      */
-    private void setSocket(java.net.ServerSocket socket) {
-        this.socket = socket;
+    private void setServerSocket(java.net.ServerSocket serverSocket) {
+        this.serverSocket = serverSocket;
     }
 
     /**
      * Gets the socket.
      * @return Socket
      */
-    private java.net.ServerSocket getSocket() {
-        return socket;
+    private java.net.ServerSocket getServerSocket() {
+        return serverSocket;
+    }
+
+    /**
+     * Gets the client connections.
+     * @return Client connections
+     */
+    private ArrayList<Connection> getClientConnections() {
+        return clientConnections;
+    }
+
+    /**
+     * Sends the data over the socket.
+     * @param data Data to send
+     */
+    public void send(Object data) {
+        for (Connection clientConnection : getClientConnections()) {
+            clientConnection.send(data);
+        }
     }
 
     /**
@@ -63,7 +74,10 @@ public class ServerSocket extends Socket {
      * @throws IOException Thrown if error closing the server socket.
      */
     public void close() throws IOException {
-        getSocket().close();
+        for (Connection connection : getClientConnections()) {
+            connection.close();
+        }
+        getServerSocket().close();
     }
 
 }

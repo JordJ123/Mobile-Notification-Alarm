@@ -1,7 +1,6 @@
 package phidget;
 
 import com.phidget22.LCD;
-import com.phidget22.LCDFont;
 import com.phidget22.PhidgetException;
 
 /**
@@ -23,14 +22,6 @@ public class ExtendedLCD extends LCD {
         setContrast(0.5);
     }
 
-    /**
-     * Writes text to the lcd.
-     * @param text Text to write
-     * @throws PhidgetException Thrown if error with the phidget
-     */
-    public void writeText(String text) throws PhidgetException {
-        clear();
-        writeText(LCDFont.DIMENSIONS_6X12, 0, 0, text);
-    }
+
 
 }

@@ -1,7 +1,10 @@
 package components;
 
+import com.phidget22.LCDFont;
+import com.phidget22.LCDScreenSize;
 import com.phidget22.PhidgetException;
 import phidget.ExtendedLCD;
+import phidget.ExtendedSlider;
 
 /**
  * Device that displays the notifications.
@@ -17,12 +20,14 @@ public class NotificationDisplay {
 
     /**
      * Creates the notification display.
-     * @param lcdSerialNumber Serial number of the lcd phidget
+     * @param lcd Lcd
      * @throws PhidgetException Thrown if error with a phidget
      */
-    public NotificationDisplay(int lcdSerialNumber) throws PhidgetException {
-        setLcd(new ExtendedLCD(lcdSerialNumber));
+    public NotificationDisplay(ExtendedLCD lcd)
+        throws PhidgetException {
+        setLcd(lcd);
         displayNotifications(0);
+        getLcd().writeText(LCDFont.DIMENSIONS_6X12, 4, 1, "Dismiss All");
     }
 
     /**
@@ -48,12 +53,21 @@ public class NotificationDisplay {
      */
     public void displayNotifications(int number) throws PhidgetException {
         String message;
+        String numberString;
         if (number != 1) {
             message = MESSAGE;
         } else {
             message = MESSAGE.substring(0, MESSAGE.length() - 1);
         }
-        getLcd().writeText(String.format(message, number));
+        if (number > 9) {
+            numberString = "9+";
+        } else {
+            numberString = Integer.toString(number);
+        }
+        getLcd().writeText(LCDFont.DIMENSIONS_6X12, 0, 0, "                    "
+            + "                                                              ");
+        getLcd().writeText(LCDFont.DIMENSIONS_6X12, 0, 0,
+            String.format(message, numberString));
     }
 
 

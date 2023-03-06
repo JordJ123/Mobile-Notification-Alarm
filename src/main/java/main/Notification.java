@@ -1,3 +1,5 @@
+package main;
+
 import java.util.Objects;
 
 /**
@@ -8,13 +10,21 @@ public class Notification {
 
     //Attributes
     private int id;
+    private String appName;
+    private String title;
+    private String message;
+    private boolean isActiveNotification;
 
     /**
      * Creates a notification.
      * @param id ID of the notification
      */
-    public Notification(int id) {
+    public Notification(int id, boolean isActiveNotification) {
         setId(id);
+        this.appName = "Facebook";
+        this.title = "Title";
+        this.message = "Message";
+        this.isActiveNotification = isActiveNotification;
     }
 
     /**
@@ -29,8 +39,16 @@ public class Notification {
      * Gets the id.
      * @return Id
      */
-    private int getId() {
+    public int getId() {
         return id;
+    }
+
+    /**
+     * Gets if the notification is active.
+     * @return Notification
+     */
+    public boolean getIsActiveNotification() {
+        return isActiveNotification;
     }
 
     /**
@@ -55,4 +73,14 @@ public class Notification {
         return Objects.hash(getId());
     }
 
+    /**
+     * Returns a string version of the notification.
+     * @return String version of the notification
+     */
+    @Override
+    public String toString() {
+        return "Notification{" +
+            "id=" + id +
+            '}';
+    }
 }
