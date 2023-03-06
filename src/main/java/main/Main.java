@@ -2,6 +2,7 @@ package main;
 
 import com.google.gson.Gson;
 import com.phidget22.PhidgetException;
+import components.LeftButton;
 import components.MiddleButton;
 import components.NotificationDisplay;
 import org.jetbrains.annotations.NotNull;
@@ -21,6 +22,7 @@ public class Main {
 
     //SERIAL NUMBERS
     private static final int LCD_SERIAL_NUMBER = 39834;
+    private static final int BUTTON_1_CHANNEL = 6;
     private static final int BUTTON_2_CHANNEL = 7;
     private static final int BUZZER_CHANNEL = 7;
     private static final int LED_CHANNEL = 0;
@@ -33,6 +35,7 @@ public class Main {
     //Static Attributes
     private static Mode mode = Mode.NUMBER;
     private static HashSet<Notification> notifications = new HashSet<>();
+    private static LeftButton leftButton;
     private static MiddleButton middleButton;
     private static ExtendedBuzzer buzzer;
     private static ExtendedLED led;
@@ -47,6 +50,36 @@ public class Main {
      */
     public enum Mode {
         NUMBER, READ, ALARM
+    }
+
+    /**
+     * Sets the mode.
+     * @param mode Mode
+     * @throws PhidgetException Thrown if error with a phidget
+     */
+    public static void setMode(Mode mode) throws PhidgetException {
+        Main.mode = mode;
+        switch (Main.mode) {
+            case NUMBER:
+                getLeftButton().enableReadModeSelect();
+                getMiddleButton().enableDismissAll();
+                getNotificationDisplay().enableNumberMode();
+                break;
+            case READ:
+                getLeftButton().enableNumberModeSelect();
+                break;
+            default:
+                throw new EnumConstantNotPresentException(Mode.class,
+                    Main.mode.toString());
+        }
+    }
+
+    /**
+     * Sets the left button.
+     * @param leftButton Left button
+     */
+    private static void setLeftButton(LeftButton leftButton) {
+        Main.leftButton = leftButton;
     }
 
     /**
@@ -107,6 +140,14 @@ public class Main {
     }
 
     /**
+     * Gets the left button.
+     * @return Left button
+     */
+    private static LeftButton getLeftButton() {
+        return leftButton;
+    }
+
+    /**
      * Gets the middle button.
      * @return Middle button
      */
@@ -150,7 +191,7 @@ public class Main {
      * Gets the notifications.
      * @return Notifications
      */
-    private static HashSet<Notification> getNotifications() {
+    public static HashSet<Notification> getNotifications() {
         return notifications;
     }
 
@@ -180,6 +221,7 @@ public class Main {
         throws IOException, PhidgetException {
 
         //Adds the components
+        setLeftButton(new LeftButton(LCD_SERIAL_NUMBER, BUTTON_1_CHANNEL));
         setMiddleButton(new MiddleButton(LCD_SERIAL_NUMBER, BUTTON_2_CHANNEL));
         setBuzzer(new ExtendedBuzzer(LCD_SERIAL_NUMBER, BUZZER_CHANNEL));
         setLed(new ExtendedLED(LCD_SERIAL_NUMBER, LED_CHANNEL));
@@ -187,6 +229,7 @@ public class Main {
             new ExtendedLCD(LCD_SERIAL_NUMBER),
             new ExtendedSlider(LCD_SERIAL_NUMBER, SLIDER_CHANNEL)));
 //        setVibrator(new ExtendedVibrator(LCD_SERIAL_NUMBER, VIBRATOR_CHANNEL));
+        setMode(Mode.NUMBER);
 
         //Sets the code for the alarm
         setServerSocket(new ServerSocket(Socket.TEST_PORT,

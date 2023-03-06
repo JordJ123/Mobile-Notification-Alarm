@@ -2,6 +2,7 @@ package components;
 
 import com.phidget22.LCDFont;
 import com.phidget22.PhidgetException;
+import main.Main;
 import phidget.ExtendedLCD;
 import phidget.slider.ExtendedSlider;
 
@@ -22,14 +23,10 @@ public class NotificationDisplay {
      * Creates the notification display.
      * @param lcd Lcd
      * @param slider Slider
-     * @throws PhidgetException Thrown if error with a phidget
      */
-    public NotificationDisplay(ExtendedLCD lcd, ExtendedSlider slider)
-        throws PhidgetException {
+    public NotificationDisplay(ExtendedLCD lcd, ExtendedSlider slider) {
         setLcd(lcd);
         setSlider(slider);
-        displayNotifications(0);
-        getLcd().writeText(LCDFont.DIMENSIONS_6X12, 4, 1, "Dismiss All");
         getSlider().voltageRatioChangeListener(
             event -> {
                 try {
@@ -76,6 +73,15 @@ public class NotificationDisplay {
      */
     private ExtendedSlider getSlider() {
         return slider;
+    }
+
+    /**
+     * Enables the number mode.
+     * @throws PhidgetException Thrown if error with a phidget
+     */
+    public void enableNumberMode() throws PhidgetException {
+        displayNotifications(Main.getNotifications().size());
+        getLcd().writeText(LCDFont.DIMENSIONS_6X12, 4, 1, "Dismiss All");
     }
 
     /**
