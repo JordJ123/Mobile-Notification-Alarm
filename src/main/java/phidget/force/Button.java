@@ -67,16 +67,22 @@ public class Button extends VoltageInput {
      * @param buttonAction Button action
      */
     public void buttonAction(ButtonAction buttonAction) {
-        removeVoltageChangeListener(getCurrentVIVCL());
-        setCurrentVIVCL(event -> {
-            boolean isClicked = getPreviousVoltage() != 0
-                && event.getVoltage() > BUTTON_PRESSURE;
-            setPreviousVoltage(event.getVoltage());
-            if (isClicked) {
-                buttonAction.run();
-            }
-        });
-        addVoltageChangeListener(getCurrentVIVCL());
+        if (getCurrentVIVCL() != null) {
+            removeVoltageChangeListener(getCurrentVIVCL());
+        }
+        if (buttonAction != null) {
+            setCurrentVIVCL(event -> {
+                boolean isClicked = getPreviousVoltage() != 0
+                    && event.getVoltage() > BUTTON_PRESSURE;
+                setPreviousVoltage(event.getVoltage());
+                if (isClicked) {
+                    buttonAction.run();
+                }
+            });
+            addVoltageChangeListener(getCurrentVIVCL());
+        } else {
+            setCurrentVIVCL(null);
+        }
     }
 
 }

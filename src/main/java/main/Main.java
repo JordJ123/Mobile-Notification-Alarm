@@ -71,9 +71,15 @@ public class Main {
                 break;
             case READ:
                 getLeftButton().enableNumberModeSelect();
+                getMiddleButton().buttonAction(null);
+                getRightButton().buttonAction(null);
+                getNotificationDisplay().enableReadMode();
                 break;
             case ALARM:
+                getLeftButton().buttonAction(null);
+                getMiddleButton().buttonAction(null);
                 getRightButton().enableNumberModeSelect();
+                getNotificationDisplay().enableAlarmMode();
                 break;
             default:
                 throw new EnumConstantNotPresentException(Mode.class,

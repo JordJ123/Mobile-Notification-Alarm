@@ -85,6 +85,24 @@ public class NotificationDisplay {
     }
 
     /**
+     * Enables the read mode.
+     * @throws PhidgetException Thrown if error with a phidget
+     */
+    public void enableReadMode() throws PhidgetException {
+        getLcd().clear();
+        getLcd().writeText(LCDFont.DIMENSIONS_6X12, 0, 0, "Read");
+    }
+
+    /**
+     * Enables the alarm mode.
+     * @throws PhidgetException Thrown if error with a phidget
+     */
+    public void enableAlarmMode() throws PhidgetException {
+        getLcd().clear();
+        getLcd().writeText(LCDFont.DIMENSIONS_6X12, 0, 0, "Alarm");
+    }
+
+    /**
      * Displays the information of the notifications onto the lcd screen.
      * @param number Number of notifications to display
      * @throws PhidgetException Thrown if error with a phidget
