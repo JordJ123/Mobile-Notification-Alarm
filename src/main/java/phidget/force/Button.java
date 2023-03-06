@@ -2,9 +2,7 @@ package phidget.force;
 
 import com.phidget22.PhidgetException;
 import com.phidget22.VoltageInput;
-import com.phidget22.VoltageInputVoltageChangeEvent;
 import com.phidget22.VoltageInputVoltageChangeListener;
-import main.Main;
 import phidget.PhidgetHandler;
 
 /**
@@ -14,7 +12,7 @@ import phidget.PhidgetHandler;
 public class Button extends VoltageInput {
 
     //CONSTANTS
-    private static final double BUTTON_PRESSURE = 0.1000;
+    private static final double BUTTON_PRESSURE = 0.1;
 
     //Attributes
     private VoltageInputVoltageChangeListener currentVIVCL;

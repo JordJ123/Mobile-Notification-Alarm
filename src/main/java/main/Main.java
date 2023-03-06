@@ -5,6 +5,7 @@ import com.phidget22.PhidgetException;
 import components.LeftButton;
 import components.MiddleButton;
 import components.NotificationDisplay;
+import components.RightButton;
 import org.jetbrains.annotations.NotNull;
 import phidget.*;
 import phidget.slider.ExtendedSlider;
@@ -22,8 +23,9 @@ public class Main {
 
     //SERIAL NUMBERS
     private static final int LCD_SERIAL_NUMBER = 39834;
-    private static final int BUTTON_1_CHANNEL = 6;
-    private static final int BUTTON_2_CHANNEL = 7;
+    private static final int BUTTON_1_CHANNEL = 7;
+    private static final int BUTTON_2_CHANNEL = 6;
+    private static final int BUTTON_3_CHANNEL = 5;
     private static final int BUZZER_CHANNEL = 7;
     private static final int LED_CHANNEL = 0;
     private static final int SLIDER_CHANNEL = 0;
@@ -37,6 +39,7 @@ public class Main {
     private static HashSet<Notification> notifications = new HashSet<>();
     private static LeftButton leftButton;
     private static MiddleButton middleButton;
+    private static RightButton rightButton;
     private static ExtendedBuzzer buzzer;
     private static ExtendedLED led;
     private static NotificationDisplay notificationDisplay;
@@ -63,10 +66,14 @@ public class Main {
             case NUMBER:
                 getLeftButton().enableReadModeSelect();
                 getMiddleButton().enableDismissAll();
+                getRightButton().enableAlarmModeSelect();
                 getNotificationDisplay().enableNumberMode();
                 break;
             case READ:
                 getLeftButton().enableNumberModeSelect();
+                break;
+            case ALARM:
+                getRightButton().enableNumberModeSelect();
                 break;
             default:
                 throw new EnumConstantNotPresentException(Mode.class,
@@ -88,6 +95,14 @@ public class Main {
      */
     private static void setMiddleButton(MiddleButton middleButton) {
         Main.middleButton = middleButton;
+    }
+
+    /**
+     * Sets the right button.
+     * @param rightButton Right button
+     */
+    private static void setRightButton(RightButton rightButton) {
+        Main.rightButton = rightButton;
     }
 
     /**
@@ -153,6 +168,14 @@ public class Main {
      */
     private static MiddleButton getMiddleButton() {
         return middleButton;
+    }
+
+    /**
+     * Gets the right button.
+     * @return Right button
+     */
+    private static RightButton getRightButton() {
+        return rightButton;
     }
 
     /**
@@ -223,6 +246,7 @@ public class Main {
         //Adds the components
         setLeftButton(new LeftButton(LCD_SERIAL_NUMBER, BUTTON_1_CHANNEL));
         setMiddleButton(new MiddleButton(LCD_SERIAL_NUMBER, BUTTON_2_CHANNEL));
+        setRightButton(new RightButton(LCD_SERIAL_NUMBER, BUTTON_3_CHANNEL));
         setBuzzer(new ExtendedBuzzer(LCD_SERIAL_NUMBER, BUZZER_CHANNEL));
         setLed(new ExtendedLED(LCD_SERIAL_NUMBER, LED_CHANNEL));
         setNotificationDisplay(new NotificationDisplay(
