@@ -256,8 +256,8 @@ public class Main {
         setBuzzer(new ExtendedBuzzer(LCD_SERIAL_NUMBER, BUZZER_CHANNEL));
         setLed(new ExtendedLED(LCD_SERIAL_NUMBER, LED_CHANNEL));
         setNotificationDisplay(new NotificationDisplay(
-            new ExtendedLCD(LCD_SERIAL_NUMBER),
-            new ExtendedSlider(LCD_SERIAL_NUMBER, SLIDER_CHANNEL)));
+            new ExtendedSlider(LCD_SERIAL_NUMBER, SLIDER_CHANNEL),
+            new ExtendedLCD(LCD_SERIAL_NUMBER)));
 //        setVibrator(new ExtendedVibrator(LCD_SERIAL_NUMBER, VIBRATOR_CHANNEL));
         setMode(Mode.NUMBER);
 

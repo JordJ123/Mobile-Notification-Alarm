@@ -8,6 +8,7 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.PrintWriter;
 import java.net.Socket;
+import java.net.SocketException;
 
 /**
  * Represents a connection to a client socket from a server socket.
@@ -35,7 +36,14 @@ public class Connection {
             while (true) {
                 try {
                     inputRunnable.run(getInput().readLine());
-                } catch (IOException e) {
+                } catch (SocketException socketException) {
+                    if (socketException.getMessage().equals(
+                        "Connection reset")) {
+                        break; //Error on the other socket's end
+                    } else {
+                        socketException.printStackTrace();
+                    }
+                } catch (Exception e) {
                     e.printStackTrace();
                 }
             }

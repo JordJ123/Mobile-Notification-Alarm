@@ -1,6 +1,7 @@
 package socket;
 
 import java.io.IOException;
+import java.net.SocketException;
 import java.util.ArrayList;
 
 /**
@@ -28,6 +29,13 @@ public class ServerSocket extends Socket {
                 while (true) {
                     getClientConnections().add(new Connection(
                         getServerSocket().accept(), inputRunnable));
+                }
+            } catch (SocketException socketException) {
+                if (socketException.getMessage().equals(
+                    "socket closed")) {
+                    //Error on the other socket's end
+                } else {
+                    socketException.printStackTrace();
                 }
             } catch (IOException e) {
                 e.printStackTrace();

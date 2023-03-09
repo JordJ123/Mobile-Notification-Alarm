@@ -21,11 +21,11 @@ public class NotificationDisplay {
 
     /**
      * Creates the notification display.
-     * @param lcd Lcd
      * @param slider Slider
+     * @param lcd Lcd
      * @throws PhidgetException Thrown if error with a phidget
      */
-    public NotificationDisplay(ExtendedLCD lcd, ExtendedSlider slider)
+    public NotificationDisplay(ExtendedSlider slider, ExtendedLCD lcd)
         throws PhidgetException {
         setLcd(lcd);
         setSlider(slider);

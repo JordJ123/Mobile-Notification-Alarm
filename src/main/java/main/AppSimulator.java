@@ -23,7 +23,7 @@ public class AppSimulator {
     public static void main(String[] args) {
         try {
             Scanner in = new Scanner(System.in);
-            ClientSocket socket = new ClientSocket(HOSTNAME,
+            ClientSocket socket = new ClientSocket(Socket.TEST_HOSTNAME,
                 Socket.TEST_PORT, System.out::println);
             while (true) {
                 System.out.print("Enter <add/remove> <id>: ");
