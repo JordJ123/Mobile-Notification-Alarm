@@ -52,7 +52,7 @@ public class Main {
      * Possible modes the alarm could be in.
      */
     public enum Mode {
-        NUMBER, READ, ALARM
+        NUMBER, READ, SETTINGS
     }
 
     /**
@@ -66,7 +66,7 @@ public class Main {
             case NUMBER:
                 getLeftButton().enableReadModeSelect();
                 getMiddleButton().enableDismissAll();
-                getRightButton().enableAlarmModeSelect();
+                getRightButton().enableSettingsModeSelect();
                 getNotificationDisplay().enableNumberMode();
                 break;
             case READ:
@@ -75,11 +75,11 @@ public class Main {
                 getRightButton().buttonAction(null);
                 getNotificationDisplay().enableReadMode();
                 break;
-            case ALARM:
+            case SETTINGS:
                 getLeftButton().buttonAction(null);
                 getMiddleButton().buttonAction(null);
                 getRightButton().enableNumberModeSelect();
-                getNotificationDisplay().enableAlarmMode();
+                getNotificationDisplay().enableSettingsMode();
                 break;
             default:
                 throw new EnumConstantNotPresentException(Mode.class,

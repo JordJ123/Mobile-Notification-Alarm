@@ -24,10 +24,10 @@ public class RightButton extends Button {
     /**
      * Sets the functionality of the force sensor to be the read select option.
      */
-    public void enableAlarmModeSelect() {
+    public void enableSettingsModeSelect() {
         buttonAction(() -> {
             try {
-                Main.setMode(Main.Mode.ALARM);
+                Main.setMode(Main.Mode.SETTINGS);
             } catch (PhidgetException e) {
                 e.printStackTrace();
             }

@@ -13,15 +13,17 @@ import java.util.Scanner;
  */
 public class AppSimulator {
 
+    //CONSTANT
+    private static String HOSTNAME = "192.168.1.175";
+
     /**
      * Main method.
      * @param args Command line argument
-     * @throws IOException Thrown if error sending data between sockets
      */
-    public static void main(String[] args) throws IOException {
+    public static void main(String[] args) {
         try {
             Scanner in = new Scanner(System.in);
-            ClientSocket socket = new ClientSocket(Socket.TEST_HOSTNAME,
+            ClientSocket socket = new ClientSocket(HOSTNAME,
                 Socket.TEST_PORT, System.out::println);
             while (true) {
                 System.out.print("Enter <add/remove> <id>: ");

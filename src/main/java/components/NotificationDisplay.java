@@ -23,20 +23,17 @@ public class NotificationDisplay {
      * Creates the notification display.
      * @param lcd Lcd
      * @param slider Slider
+     * @throws PhidgetException Thrown if error with a phidget
      */
-    public NotificationDisplay(ExtendedLCD lcd, ExtendedSlider slider) {
+    public NotificationDisplay(ExtendedLCD lcd, ExtendedSlider slider)
+        throws PhidgetException {
         setLcd(lcd);
         setSlider(slider);
+        adjustBrightness(getSlider().getVoltageRatio());
         getSlider().voltageRatioChangeListener(
             event -> {
                 try {
-                    System.out.println(event.getVoltageRatio());
-                    getLcd().setContrast(event.getVoltageRatio());
-                    if (event.getVoltageRatio() <= 0.999) {
-                        getLcd().setBacklight(1);
-                    } else {
-                        getLcd().setBacklight(0);
-                    }
+                    adjustBrightness(event.getVoltageRatio());
                 } catch (PhidgetException e) {
                     e.printStackTrace();
                 }
@@ -97,9 +94,9 @@ public class NotificationDisplay {
      * Enables the alarm mode.
      * @throws PhidgetException Thrown if error with a phidget
      */
-    public void enableAlarmMode() throws PhidgetException {
+    public void enableSettingsMode() throws PhidgetException {
         getLcd().clear();
-        getLcd().writeText(LCDFont.DIMENSIONS_6X12, 0, 0, "Alarm");
+        getLcd().writeText(LCDFont.DIMENSIONS_6X12, 0, 0, "Settings");
     }
 
     /**
@@ -124,6 +121,19 @@ public class NotificationDisplay {
             + "                                                              ");
         getLcd().writeText(LCDFont.DIMENSIONS_6X12, 0, 0,
             String.format(message, numberString));
+    }
+
+    /**
+     * Adjusts the brightness of the lcd screen.
+     * @throws PhidgetException Thrown if error with the lcd phidget
+     */
+    private void adjustBrightness(double brightness) throws PhidgetException {
+        getLcd().setContrast(brightness);
+        if (brightness <= 0.999) {
+            getLcd().setBacklight(1);
+        } else {
+            getLcd().setBacklight(0);
+        }
     }
 
 
