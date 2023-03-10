@@ -4,6 +4,7 @@ import com.phidget22.LCDFont;
 import com.phidget22.PhidgetException;
 import main.Main;
 import phidget.ExtendedLCD;
+import phidget.ExtendedMotionSensor;
 import phidget.slider.ExtendedSlider;
 
 /**
@@ -13,23 +14,49 @@ import phidget.slider.ExtendedSlider;
 public class NotificationDisplay {
 
     //CONSTANTS
+    private static final double MOTION_THRESHOLD = 4;
+    private static final long ON_DURATION = 5000;
     private static final String MESSAGE = "%s New Notifications";
 
     //Attributes
     private ExtendedLCD lcd;
+    private ExtendedMotionSensor motionSensor;
     private ExtendedSlider slider;
+    private boolean isOn;
+    private long onTime;
 
     /**
      * Creates the notification display.
+     * @param motionSensor Motion sensor
      * @param slider Slider
      * @param lcd Lcd
      * @throws PhidgetException Thrown if error with a phidget
      */
-    public NotificationDisplay(ExtendedSlider slider, ExtendedLCD lcd)
+    public NotificationDisplay(ExtendedMotionSensor motionSensor,
+        ExtendedSlider slider, ExtendedLCD lcd)
         throws PhidgetException {
         setLcd(lcd);
+        setMotionSensor(motionSensor);
         setSlider(slider);
-        adjustBrightness(getSlider().getVoltageRatio());
+        adjustBrightness(1);
+        getMotionSensor().addVoltageChangeListener(event -> {
+            try {
+                if (event.getVoltage() > MOTION_THRESHOLD) {
+                    if (!getIsOn()) {
+                        setIsOn(true);
+                        adjustBrightness(getSlider().getVoltageRatio());
+                    }
+                    setOnTime(System.currentTimeMillis());
+                } else {
+                    if (onTimerFinished() && getIsOn()) {
+                        setIsOn(false);
+                        adjustBrightness(1);
+                    }
+                }
+            } catch (PhidgetException e) {
+                e.printStackTrace();
+            }
+        });
         getSlider().voltageRatioChangeListener(
             event -> {
                 try {
@@ -41,11 +68,19 @@ public class NotificationDisplay {
     }
 
     /**
-     * Sets the lcd phidget.
-     * @param lcd Lcd phidget
+     * Sets the lcd.
+     * @param lcd Lcd
      */
     private void setLcd(ExtendedLCD lcd) {
         this.lcd = lcd;
+    }
+
+    /**
+     * Sets the motion sensor
+     * @param motionSensor Motion sensor
+     */
+    private void setMotionSensor(ExtendedMotionSensor motionSensor) {
+        this.motionSensor = motionSensor;
     }
 
     /**
@@ -57,6 +92,22 @@ public class NotificationDisplay {
     }
 
     /**
+     * Sets if the screen is on.
+     * @param isOn True if the screen is on
+     */
+    private void setIsOn(boolean isOn) {
+        this.isOn = isOn;
+    }
+
+    /**
+     * Sets the time the device was last put on.
+     * @param onTime the device was last put on
+     */
+    private void setOnTime(long onTime) {
+        this.onTime = onTime;
+    }
+
+    /**
      * Gets the LCD.
      * @return LCD
      */
@@ -65,11 +116,35 @@ public class NotificationDisplay {
     }
 
     /**
+     * Gets the motion sensor.
+     * @return Motion sensor
+     */
+    private ExtendedMotionSensor getMotionSensor() {
+        return motionSensor;
+    }
+
+    /**
      * Gets the slider.
      * @return Slider
      */
     private ExtendedSlider getSlider() {
         return slider;
+    }
+
+    /**
+     * Gets if the screen is on.
+     * @return Return if the screen is on
+     */
+    private boolean getIsOn() {
+        return isOn;
+    }
+
+    /**
+     * Get the time the device was last put on
+     * @return Time the device was last put on
+     */
+    private long getOnTime() {
+        return onTime;
     }
 
     /**
@@ -127,13 +202,22 @@ public class NotificationDisplay {
      * Adjusts the brightness of the lcd screen.
      * @throws PhidgetException Thrown if error with the lcd phidget
      */
-    private void adjustBrightness(double brightness) throws PhidgetException {
-        getLcd().setContrast(brightness);
-        if (brightness <= 0.999) {
+    private synchronized void adjustBrightness(double brightness)
+        throws PhidgetException {
+        if (brightness <= 0.999 && getIsOn()) {
             getLcd().setBacklight(1);
+            getLcd().setContrast(brightness);
         } else {
             getLcd().setBacklight(0);
+            getLcd().setContrast(1);
         }
+    }
+
+    /**
+     * Checks if the on timer has finished
+     */
+    private boolean onTimerFinished() {
+        return System.currentTimeMillis() > getOnTime() + ON_DURATION;
     }
 
 

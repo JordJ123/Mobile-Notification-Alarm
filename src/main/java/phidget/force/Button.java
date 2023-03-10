@@ -21,7 +21,7 @@ public class Button extends VoltageInput {
     /**
      * Creates an extended force sensor.
      * @param serialNumber Serial number of the device
-     * @param channel      Channel of the output
+     * @param channel Channel of the output
      * @throws PhidgetException Thrown if error with the phidget
      */
     public Button(int serialNumber, int channel)

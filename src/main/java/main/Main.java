@@ -28,6 +28,7 @@ public class Main {
     private static final int BUTTON_3_CHANNEL = 5;
     private static final int BUZZER_CHANNEL = 7;
     private static final int LED_CHANNEL = 0;
+    private static final int MOTION_CHANNEL = 4;
     private static final int SLIDER_CHANNEL = 0;
     private static final int VIBRATOR_CHANNEL = 1;
 
@@ -256,6 +257,7 @@ public class Main {
         setBuzzer(new ExtendedBuzzer(LCD_SERIAL_NUMBER, BUZZER_CHANNEL));
         setLed(new ExtendedLED(LCD_SERIAL_NUMBER, LED_CHANNEL));
         setNotificationDisplay(new NotificationDisplay(
+            new ExtendedMotionSensor(LCD_SERIAL_NUMBER, MOTION_CHANNEL),
             new ExtendedSlider(LCD_SERIAL_NUMBER, SLIDER_CHANNEL),
             new ExtendedLCD(LCD_SERIAL_NUMBER)));
 //        setVibrator(new ExtendedVibrator(LCD_SERIAL_NUMBER, VIBRATOR_CHANNEL));
