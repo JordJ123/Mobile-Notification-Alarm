@@ -17,7 +17,7 @@ import java.util.concurrent.locks.ReentrantReadWriteLock;
 public class Connection {
 
     //CONSTANTS
-    private static final long SEND_WAIT = 3000;
+    private static final long SEND_WAIT = 10000;
 
     //Attributes
     private Socket socket;
