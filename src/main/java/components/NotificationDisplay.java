@@ -14,7 +14,7 @@ import phidget.slider.ExtendedSlider;
 public class NotificationDisplay {
 
     //CONSTANTS
-    private static final double MOTION_THRESHOLD = 4;
+    private static final double MOTION_THRESHOLD = 0;
     private static final long ON_DURATION = 5000;
     private static final String MESSAGE = "%s New Notifications";
 

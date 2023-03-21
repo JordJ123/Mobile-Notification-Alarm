@@ -25,20 +25,19 @@ public class ServerSocket extends Socket {
         super(port);
         setServerSocket(new java.net.ServerSocket(port));
         new Thread(() -> {
-            try {
-                while (true) {
+            while (true) {
+                try {
                     getClientConnections().add(new Connection(
                         getServerSocket().accept(), inputRunnable));
+                } catch (SocketException se) {
+                    if (se.getMessage().endsWith("socket closed")) {
+                        break; // Attempted socket to connect to is closed
+                    } else {
+                        se.printStackTrace();
+                    }
+                } catch (Exception exception) {
+                    exception.printStackTrace();
                 }
-            } catch (SocketException socketException) {
-                if (socketException.getMessage().equals(
-                    "socket closed")) {
-                    //Error on the other socket's end
-                } else {
-                    socketException.printStackTrace();
-                }
-            } catch (IOException e) {
-                e.printStackTrace();
             }
         }).start();
     }
@@ -70,11 +69,17 @@ public class ServerSocket extends Socket {
     /**
      * Sends the data over the socket.
      * @param data Data to send
+     * @return True if the data was sent to at least one client
      */
-    public void send(Object data) {
+    public boolean send(Object data) throws IOException {
+        boolean isSent = false;
         for (Connection clientConnection : getClientConnections()) {
-            clientConnection.send(data);
+            boolean isSuccess = clientConnection.send(data);
+            if (isSuccess) {
+                isSent = true;
+            }
         }
+        return isSent;
     }
 
     /**

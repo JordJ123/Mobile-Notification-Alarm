@@ -9,7 +9,8 @@ import java.util.Objects;
 public class Notification {
 
     //Attributes
-    private int id;
+    private String id;
+    private String key;
     private String appName;
     private String title;
     private String message;
@@ -19,7 +20,7 @@ public class Notification {
      * Creates a notification.
      * @param id ID of the notification
      */
-    public Notification(int id, boolean isActiveNotification) {
+    public Notification(String id, boolean isActiveNotification) {
         setId(id);
         this.appName = "Facebook";
         this.title = "Title";
@@ -31,7 +32,7 @@ public class Notification {
      * Sets the id.
      * @param id ID of the notification
      */
-    private void setId(int id) {
+    private void setId(String id) {
         this.id = id;
     }
 
@@ -39,8 +40,16 @@ public class Notification {
      * Gets the id.
      * @return Id
      */
-    public int getId() {
+    public String getId() {
         return id;
+    }
+
+    /**
+     * Gets the key.
+     * @return key
+     */
+    public String getKey() {
+        return key;
     }
 
     /**
@@ -61,7 +70,7 @@ public class Notification {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         Notification that = (Notification) o;
-        return getId() == that.getId();
+        return getId().equals(that.getId());
     }
 
     /**
@@ -80,7 +89,8 @@ public class Notification {
     @Override
     public String toString() {
         return "Notification{" +
-            "id=" + id +
+            "id=" + getId() + ", " +
+            "isActiveNotification=" + getIsActiveNotification() +
             '}';
     }
 }

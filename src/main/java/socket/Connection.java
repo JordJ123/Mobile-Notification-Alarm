@@ -2,27 +2,32 @@ package socket;
 
 import com.google.gson.Gson;
 import org.jetbrains.annotations.NotNull;
-
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.PrintWriter;
 import java.net.Socket;
 import java.net.SocketException;
+import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 /**
- * Represents a connection to a client socket from a server socket.
+ * Represents a connection to a destination socket.
  * @author Jordan Jones
  */
 public class Connection {
+
+    //CONSTANTS
+    private static final long SEND_WAIT = 3000;
 
     //Attributes
     private Socket socket;
     private BufferedReader input;
     private PrintWriter output;
+    private ReentrantReadWriteLock socketLock = new ReentrantReadWriteLock();
+
 
     /**
-     * Creates a client connection object.
+     * Creates a connection object.
      * @param socket Socket that is having a connection to
      * @throws IOException Thrown if error with the socket input
      */
@@ -35,16 +40,35 @@ public class Connection {
         new Thread(() -> {
             while (true) {
                 try {
-                    inputRunnable.run(getInput().readLine());
-                } catch (SocketException socketException) {
-                    if (socketException.getMessage().equals(
-                        "Connection reset")) {
-                        break; //Error on the other socket's end
-                    } else {
-                        socketException.printStackTrace();
+                    socketLock.writeLock().lock();
+                    if (getInput().ready()) {
+                        String message = getInput().readLine();
+                        if (message != null) {
+                            if (!message.equals("ack")) {
+                                getOutput().println("ack");
+                                inputRunnable.run(message);
+                            }
+                        } else {
+                            break; //Client socket is closed
+                        }
                     }
-                } catch (Exception e) {
-                    e.printStackTrace();
+                    socketLock.writeLock().unlock();
+                } catch (SocketException se) {
+                    if (se.getMessage().endsWith("Connection reset")) {
+                        try {
+                            close();
+                        } catch (IOException e) {
+                            e.printStackTrace();
+                        }
+                        break; //Host Socket is closed
+                    }
+                    if (se.getMessage().endsWith("Socket closed")) {
+                        break; //This socket is closed
+                    } else {
+                        se.printStackTrace();
+                    }
+                } catch (Exception exception) {
+                    exception.printStackTrace();
                 }
             }
         }).start();
@@ -101,9 +125,24 @@ public class Connection {
     /**
      * Sends the data over the server connection.
      * @param data Data
+     * @return True if the send sent was a success
      */
-    public void send(Object data) {
-        getOutput().println(new Gson().toJson(data));
+    public boolean send(Object data) throws IOException {
+        socketLock.writeLock().lock();
+        if (isActive()) {
+            getOutput().println(new Gson().toJson(data));
+            long startTime = System.currentTimeMillis();
+            while (System.currentTimeMillis() - startTime <= SEND_WAIT) {
+                if (getInput().ready()) {
+                    if (getInput().readLine().equals("ack")) {
+                        socketLock.writeLock().unlock();
+                        return true;
+                    }
+                }
+            }
+        }
+        socketLock.writeLock().unlock();
+        return false;
     }
 
     /**
@@ -111,9 +150,17 @@ public class Connection {
      * @throws IOException Thrown if error closing the connection
      */
     public void close() throws IOException {
-        getInput().close();
-        getOutput().close();
-        getSocket().close();
+        if (isActive()) {
+            getSocket().close();
+        }
+    }
+
+    /**
+     * Checks if the connection is active
+     * @return True if the socket is active
+     */
+    public boolean isActive() {
+        return !getSocket().isClosed();
     }
 
 }

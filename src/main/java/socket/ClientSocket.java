@@ -1,6 +1,7 @@
 package socket;
 
 import java.io.IOException;
+import java.net.ConnectException;
 
 /**
  * Socket for a client.
@@ -9,6 +10,7 @@ import java.io.IOException;
 public class ClientSocket extends Socket {
 
     //Attributes
+    private Thread socketThread;
     private Connection serverConnection;
 
     /**
@@ -16,13 +18,45 @@ public class ClientSocket extends Socket {
      * @param host Host name to connect to
      * @param port Port number to connect to
      * @param inputRunnable Code to run when there is an input
-     * @throws IOException Throws if issues with input/output
      */
-    public ClientSocket(String host, int port, InputRunnable inputRunnable)
-        throws IOException {
+    public ClientSocket(String host, int port, InputRunnable inputRunnable) {
         super(port);
-        setServerConnection(new Connection(new java.net.Socket(host, port),
-            inputRunnable));
+        setSocketThread(new Thread(() -> {
+            try {
+                while (true) {
+                    if (getServerConnection() == null
+                        || !getServerConnection().isActive()) {
+                        java.net.Socket socket;
+                        while (true) {
+                            try {
+                                socket = new java.net.Socket(host, port);
+                                break;
+                            } catch (ConnectException ce) {
+                                if (ce.getMessage().endsWith(
+                                    "Connection refused: connect")) {
+                                    //Host does not exist
+                                } else {
+                                    ce.printStackTrace();
+                                }
+                            }
+                        }
+                        setServerConnection(
+                            new Connection(socket, inputRunnable));
+                    }
+                }
+            } catch (Exception exception) {
+                exception.printStackTrace();
+            }
+        }));
+        getSocketThread().start();
+    }
+
+    /**
+     * Sets the socket thread.
+     * @param socketThread Socket thread
+     */
+    private void setSocketThread(Thread socketThread) {
+        this.socketThread = socketThread;
     }
 
     /**
@@ -31,6 +65,14 @@ public class ClientSocket extends Socket {
      */
     private void setServerConnection(Connection serverConnection) {
         this.serverConnection = serverConnection;
+    }
+
+    /**
+     * Gets the socket thread.
+     * @return Socket thread
+     */
+    private Thread getSocketThread() {
+        return socketThread;
     }
 
     /**
@@ -45,8 +87,11 @@ public class ClientSocket extends Socket {
      * Sends the data over the socket.
      * @param data Data to send
      */
-    public void send(Object data) throws IOException {
-        getServerConnection().send(data);
+    public boolean send(Object data) throws IOException {
+        if (getServerConnection() != null && getServerConnection().isActive()) {
+            return getServerConnection().send(data);
+        }
+        return false;
     }
 
     /**
@@ -55,6 +100,7 @@ public class ClientSocket extends Socket {
      */
     public void close() throws IOException {
         getServerConnection().close();
+        getSocketThread().stop();
     }
 
 }

@@ -11,7 +11,10 @@ import phidget.*;
 import phidget.slider.ExtendedSlider;
 import socket.ServerSocket;
 import socket.Socket;
+
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashSet;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 
@@ -38,6 +41,7 @@ public class Main {
     //Static Attributes
     private static Mode mode = Mode.NUMBER;
     private static HashSet<Notification> notifications = new HashSet<>();
+    private static ArrayList<String> buffer = new ArrayList<>();
     private static LeftButton leftButton;
     private static MiddleButton middleButton;
     private static RightButton rightButton;
@@ -154,6 +158,22 @@ public class Main {
     }
 
     /**
+     * Gets the notifications.
+     * @return Notifications
+     */
+    public static HashSet<Notification> getNotifications() {
+        return notifications;
+    }
+
+    /**
+     * Gets the notifications buffer.
+     * @return Notifications buffer
+     */
+    public static ArrayList<String> getBuffer() {
+        return buffer;
+    }
+
+    /**
      * Gets the mode.
      * @return Mode
      */
@@ -218,14 +238,6 @@ public class Main {
     }
 
     /**
-     * Gets the notifications.
-     * @return Notifications
-     */
-    public static HashSet<Notification> getNotifications() {
-        return notifications;
-    }
-
-    /**
      * Gets the server socket.
      * @return Server socket
      */
@@ -245,10 +257,8 @@ public class Main {
      * Main method.
      * @param args Command line arguments
      * @throws IOException Thrown if error with the system input to end program
-     * @throws PhidgetException Thrown if error with a phidget
      */
-    public static void main(String[] args)
-        throws IOException, PhidgetException {
+    public static void main(String[] args) throws IOException, PhidgetException {
 
         //Adds the components
         setLeftButton(new LeftButton(LCD_SERIAL_NUMBER, BUTTON_1_CHANNEL));
@@ -260,25 +270,35 @@ public class Main {
             new ExtendedMotionSensor(LCD_SERIAL_NUMBER, MOTION_CHANNEL),
             new ExtendedSlider(LCD_SERIAL_NUMBER, SLIDER_CHANNEL),
             new ExtendedLCD(LCD_SERIAL_NUMBER)));
-//        setVibrator(new ExtendedVibrator(LCD_SERIAL_NUMBER, VIBRATOR_CHANNEL));
+        setVibrator(new ExtendedVibrator(LCD_SERIAL_NUMBER, VIBRATOR_CHANNEL));
         setMode(Mode.NUMBER);
+
+        //Sets the code for the buffer
+        new Thread(() -> {
+            try {
+                while (true) {
+                    Thread.sleep(100);
+                    if (!getBuffer().isEmpty()) {
+                        String[] keys = getBuffer().toArray(new String[0]);
+                        if (getServerSocket().send(keys)) {
+                            getBuffer().removeAll(Arrays.asList(keys));
+                        }
+                    }
+                }
+            } catch (IOException | InterruptedException exception) {
+                exception.printStackTrace();
+            }
+        }).start();
 
         //Sets the code for the alarm
         setServerSocket(new ServerSocket(Socket.TEST_PORT,
             message -> {
-            try {
                 Notification notification
                     = new Gson().fromJson(message, Notification.class);
+                System.out.println(notification);
                 updateNotifications(notification);
-            } catch (PhidgetException e) {
-                e.printStackTrace();
             }
-        }));
-
-        //Removes the components
-        System.in.read();
-        PhidgetHandler.closeAllPhidgets();
-        getServerSocket().close();
+        ));
 
     }
 
@@ -327,15 +347,15 @@ public class Main {
     public static void clearNotifications() throws PhidgetException {
         getReadWriteLock().writeLock().lock();
         if (getNotifications().size() > 0) {
-            int[] ids = new int[getNotifications().size()];
+            String[] keys = new String[getNotifications().size()];
             Notification[] notifications = getNotifications().toArray(
                 new Notification[0]);
             for (int i = 0; i < getNotifications().size(); i++) {
-                ids[i] = notifications[i].getId();
+                keys[i] = notifications[i].getKey();
             }
             getNotifications().clear();
             getNotificationDisplay().displayNotifications(0);
-            getServerSocket().send(ids);
+            getBuffer().addAll(Arrays.asList(keys));
         }
         getReadWriteLock().writeLock().unlock();
     }
