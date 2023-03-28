@@ -17,10 +17,12 @@ public class ServerSocket extends Socket {
     /**
      * Creates a server socket.
      * @param port Port number that represents it
+     * @param inputRunnable Code that runs the server gets input from a client
+     * @param onDisconnectRunnable Code that runs when a client connects
      * @throws IOException Throws if error with input/output
      */
-    public ServerSocket(int port,
-        InputRunnable inputRunnable)
+    public ServerSocket(int port, InputRunnable inputRunnable,
+        OnDisconnectRunnable onDisconnectRunnable)
         throws IOException {
         super(port);
         setServerSocket(new java.net.ServerSocket(port));
@@ -28,7 +30,8 @@ public class ServerSocket extends Socket {
             while (true) {
                 try {
                     getClientConnections().add(new Connection(
-                        getServerSocket().accept(), inputRunnable));
+                        getServerSocket().accept(), inputRunnable,
+                        onDisconnectRunnable));
                 } catch (SocketException se) {
                     if (se.getMessage().endsWith("socket closed")) {
                         break; // Attempted socket to connect to is closed

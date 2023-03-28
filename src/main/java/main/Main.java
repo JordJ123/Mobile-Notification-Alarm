@@ -326,6 +326,11 @@ public class Main {
                     = new Gson().fromJson(message, Notification.class);
                 System.out.println(notification);
                 updateNotifications(notification);
+            },
+            () -> {
+                getReadWriteLock().writeLock().lock();
+                Main.getNotifications().clear();
+                getReadWriteLock().writeLock().unlock();
             }
         ));
 

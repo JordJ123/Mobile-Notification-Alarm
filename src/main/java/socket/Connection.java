@@ -29,9 +29,12 @@ public class Connection {
     /**
      * Creates a connection object.
      * @param socket Socket that is having a connection to
+     * @param inputRunnable Code that runs the server gets input from a client
+     * @param onDisconnectRunnable Code that runs when a client disconnects
      * @throws IOException Thrown if error with the socket input
      */
-    public Connection(@NotNull Socket socket, InputRunnable inputRunnable)
+    public Connection(@NotNull Socket socket, InputRunnable inputRunnable,
+        OnDisconnectRunnable onDisconnectRunnable)
         throws IOException {
         setSocket(socket);
         setInput(new BufferedReader(new InputStreamReader(
@@ -49,6 +52,9 @@ public class Connection {
                                 inputRunnable.run(message);
                             }
                         } else {
+                            if (onDisconnectRunnable != null) {
+                                onDisconnectRunnable.run();
+                            }
                             break; //Client socket is closed
                         }
                     }

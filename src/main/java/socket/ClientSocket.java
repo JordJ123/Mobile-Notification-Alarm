@@ -41,7 +41,7 @@ public class ClientSocket extends Socket {
                             }
                         }
                         setServerConnection(
-                            new Connection(socket, inputRunnable));
+                            new Connection(socket, inputRunnable, null));
                     }
                 }
             } catch (Exception exception) {
