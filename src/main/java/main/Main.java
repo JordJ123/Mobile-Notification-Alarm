@@ -67,6 +67,7 @@ public class Main {
      * @throws PhidgetException Thrown if error with a phidget
      */
     public static void setMode(Mode mode) throws PhidgetException {
+        getReadWriteLock().writeLock().lock();
         Main.mode = mode;
         switch (Main.mode) {
             case NUMBER:
@@ -76,6 +77,7 @@ public class Main {
                 getNotificationDisplay().enableNumberMode();
                 break;
             case READ:
+                setCurrentNotification(0);
                 getLeftButton().enableNumberModeSelect();
                 getMiddleButton().enableNextNotification();
                 getRightButton().enableDismissNotification();
@@ -91,6 +93,7 @@ public class Main {
                 throw new EnumConstantNotPresentException(Mode.class,
                     Main.mode.toString());
         }
+        getReadWriteLock().writeLock().unlock();
     }
 
     /**
@@ -335,23 +338,44 @@ public class Main {
     private static void updateNotifications(
         @NotNull Notification notification) throws PhidgetException {
         getReadWriteLock().writeLock().lock();
-        boolean isUpdated = false;
+        boolean isAdded = false;
+        boolean isDeleted = false;
+        int index = -1;
         if (notification.getIsActiveNotification()
             && !getNotifications().contains(notification)) {
             getNotifications().add(notification);
-            isUpdated = true;
+            isAdded = true;
         } else if (!notification.getIsActiveNotification()
             && getNotifications().contains(notification)) {
+            ArrayList<Notification> notifications = new ArrayList<>(
+                getNotifications());
+            index = notifications.indexOf(notification);
             getNotifications().remove(notification);
-            isUpdated = true;
+            isDeleted = true;
         }
-        if (isUpdated) {
+        if (isAdded || isDeleted) {
             switch (getMode()) {
                 case NUMBER:
                     getNotificationDisplay().displayNotifications(
                         getNotifications().size());
                     break;
                 case READ:
+                    if (isDeleted) {
+                        if (index <= getCurrentNotification()) {
+                            if (getCurrentNotification()
+                                == getNotifications().size()) {
+                                setCurrentNotification(0);
+                            }
+                            if (getNotifications().size() != 0) {
+                                getNotificationDisplay().displayNotification(
+                                    notification);
+                            } else {
+                                getNotificationDisplay().displayNotification(
+                                    null);
+                            }
+                        }
+                    }
+                    break;
                 case EXTRA:
                     break;
                 default:
