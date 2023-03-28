@@ -72,13 +72,13 @@ public class Main {
             case NUMBER:
                 getLeftButton().enableReadModeSelect();
                 getMiddleButton().enableDismissAll();
-                getRightButton().enableSettingsModeSelect();
+                getRightButton().enableExtraModeSelect();
                 getNotificationDisplay().enableNumberMode();
                 break;
             case READ:
                 getLeftButton().enableNumberModeSelect();
                 getMiddleButton().enableNextNotification();
-                getRightButton().buttonAction(null);
+                getRightButton().enableDismissNotification();
                 getNotificationDisplay().enableReadMode();
                 break;
             case EXTRA:
@@ -172,6 +172,15 @@ public class Main {
      */
     public static LinkedHashSet<Notification> getNotifications() {
         return notifications;
+    }
+
+    /**
+     * Gets the notifications of the given index.
+     * @param index Index of the notification
+     * @return Notification of the given index
+     */
+    private static Notification getNotification(int index) {
+        return notifications.toArray(new Notification[]{})[index];
     }
 
     /**
@@ -342,6 +351,9 @@ public class Main {
                     getNotificationDisplay().displayNotifications(
                         getNotifications().size());
                     break;
+                case READ:
+                case EXTRA:
+                    break;
                 default:
                     throw new EnumConstantNotPresentException(Mode.class,
                         getMode().toString());
@@ -383,18 +395,38 @@ public class Main {
      */
     public static void nextNotification() throws PhidgetException {
         getReadWriteLock().writeLock().lock();
-        if (getNotifications().size() > 0) {
-            setCurrentNotification(getCurrentNotification() + 1);
-            if (getCurrentNotification() == getNotifications().size()); {
-                setCurrentNotification(0);
-            }
-            getNotificationDisplay().displayNotification(getNotifications()
-                .toArray(new Notification[]{})[getCurrentNotification()]);
-        } else {
-            getNotificationDisplay().displayNotification(null);
-        }
+        next();
         getReadWriteLock().writeLock().unlock();
     }
 
+    /**
+     * Dismisses the current notification.
+     * @throws PhidgetException Thrown if error with the notification display
+     */
+    public static void dismissNotification() throws PhidgetException {
+        getReadWriteLock().writeLock().lock();
+        Notification notification = getNotification(getCurrentNotification());
+        getBuffer().add(notification.getKey());
+        getNotifications().remove(notification);
+        next();
+        getReadWriteLock().writeLock().unlock();
+    }
+
+    /**
+     * Sets the next notification.
+     * @throws PhidgetException Thrown if error with the notification display
+     */
+    private static void next() throws PhidgetException {
+        if (getNotifications().size() > 0) {
+            setCurrentNotification(getCurrentNotification() + 1);
+            if (getCurrentNotification() == getNotifications().size()) {
+                setCurrentNotification(0);
+            }
+            getNotificationDisplay().displayNotification(
+                getNotification(getCurrentNotification()));
+        } else {
+            getNotificationDisplay().displayNotification(null);
+        }
+    }
 
 }

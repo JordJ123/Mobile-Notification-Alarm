@@ -24,10 +24,23 @@ public class RightButton extends Button {
     /**
      * Sets the functionality of the force sensor to be the read select option.
      */
-    public void enableSettingsModeSelect() {
+    public void enableExtraModeSelect() {
         buttonAction(() -> {
             try {
                 Main.setMode(Main.Mode.EXTRA);
+            } catch (PhidgetException e) {
+                e.printStackTrace();
+            }
+        });
+    }
+
+    /**
+     * Sets the functionality of the force sensor to dismiss the notification
+     */
+    public void enableDismissNotification() {
+        buttonAction(() -> {
+            try {
+                Main.dismissNotification();
             } catch (PhidgetException e) {
                 e.printStackTrace();
             }
