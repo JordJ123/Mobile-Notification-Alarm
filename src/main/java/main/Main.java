@@ -11,11 +11,10 @@ import phidget.*;
 import phidget.slider.ExtendedSlider;
 import socket.ServerSocket;
 import socket.Socket;
-
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.HashSet;
+import java.util.LinkedHashSet;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 /**
@@ -40,7 +39,9 @@ public class Main {
 
     //Static Attributes
     private static Mode mode = Mode.NUMBER;
-    private static HashSet<Notification> notifications = new HashSet<>();
+    private static LinkedHashSet<Notification> notifications
+        = new LinkedHashSet<>();
+    private static int currentNotification = 0;
     private static ArrayList<String> buffer = new ArrayList<>();
     private static LeftButton leftButton;
     private static MiddleButton middleButton;
@@ -57,7 +58,7 @@ public class Main {
      * Possible modes the alarm could be in.
      */
     public enum Mode {
-        NUMBER, READ, SETTINGS
+        NUMBER, READ, EXTRA
     }
 
     /**
@@ -76,11 +77,11 @@ public class Main {
                 break;
             case READ:
                 getLeftButton().enableNumberModeSelect();
-                getMiddleButton().buttonAction(null);
+                getMiddleButton().enableNextNotification();
                 getRightButton().buttonAction(null);
                 getNotificationDisplay().enableReadMode();
                 break;
-            case SETTINGS:
+            case EXTRA:
                 getLeftButton().buttonAction(null);
                 getMiddleButton().buttonAction(null);
                 getRightButton().enableNumberModeSelect();
@@ -90,6 +91,14 @@ public class Main {
                 throw new EnumConstantNotPresentException(Mode.class,
                     Main.mode.toString());
         }
+    }
+
+    /**
+     * Sets the current notification.
+     * @param index Index of the current notification.
+     */
+    private static void setCurrentNotification(int index) {
+        Main.currentNotification = index;
     }
 
     /**
@@ -161,8 +170,16 @@ public class Main {
      * Gets the notifications.
      * @return Notifications
      */
-    public static HashSet<Notification> getNotifications() {
+    public static LinkedHashSet<Notification> getNotifications() {
         return notifications;
+    }
+
+    /**
+     * Gets the current notification index.
+     * @return Current notification index
+     */
+    private static int getCurrentNotification() {
+        return currentNotification;
     }
 
     /**
@@ -356,6 +373,25 @@ public class Main {
             getNotifications().clear();
             getNotificationDisplay().displayNotifications(0);
             getBuffer().addAll(Arrays.asList(keys));
+        }
+        getReadWriteLock().writeLock().unlock();
+    }
+
+    /**
+     * Sets the current notification to the next notification.
+     * @throws PhidgetException Thrown if error with the notification display
+     */
+    public static void nextNotification() throws PhidgetException {
+        getReadWriteLock().writeLock().lock();
+        if (getNotifications().size() > 0) {
+            setCurrentNotification(getCurrentNotification() + 1);
+            if (getCurrentNotification() == getNotifications().size()); {
+                setCurrentNotification(0);
+            }
+            getNotificationDisplay().displayNotification(getNotifications()
+                .toArray(new Notification[]{})[getCurrentNotification()]);
+        } else {
+            getNotificationDisplay().displayNotification(null);
         }
         getReadWriteLock().writeLock().unlock();
     }

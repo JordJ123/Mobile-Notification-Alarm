@@ -33,4 +33,18 @@ public class MiddleButton extends Button {
         });
     }
 
+    /**
+     * Gets the next notification.
+     */
+    public void enableNextNotification() {
+        buttonAction(() -> {
+            try {
+                Main.nextNotification();
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+
+        });
+    }
+
 }

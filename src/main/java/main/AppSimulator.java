@@ -22,10 +22,14 @@ public class AppSimulator {
      * @param args Command line argument
      */
     public static void main(String[] args) {
+
+        //Setup
         ClientSocket socket = new ClientSocket(Socket.TEST_HOSTNAME,
             Socket.TEST_PORT, System.out::println);
         Scanner in = new Scanner(System.in);
         ArrayList<Notification> buffer = new ArrayList<>();
+
+        //Continuously tries to send notification data
         new Thread(() -> {
             try {
                 while (true) {
@@ -42,6 +46,8 @@ public class AppSimulator {
                 ioException.printStackTrace();
             }
         }).start();
+
+        //This is where the notifications get posted
         while (true) {
             try {
                 System.out.print("Enter <add/remove> <id>: ");

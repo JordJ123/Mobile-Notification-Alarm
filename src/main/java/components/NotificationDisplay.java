@@ -3,6 +3,7 @@ package components;
 import com.phidget22.LCDFont;
 import com.phidget22.PhidgetException;
 import main.Main;
+import main.Notification;
 import phidget.ExtendedLCD;
 import phidget.ExtendedMotionSensor;
 import phidget.slider.ExtendedSlider;
@@ -16,7 +17,8 @@ public class NotificationDisplay {
     //CONSTANTS
     private static final double MOTION_THRESHOLD = 0;
     private static final long ON_DURATION = 5000;
-    private static final String MESSAGE = "%s New Notifications";
+    private static final String DISPLAY_NOTIFICATIONS = "%s New Notifications";
+    private static final String NO_NOTIFICATIONS = "No Notifications";
 
     //Attributes
     private ExtendedLCD lcd;
@@ -183,19 +185,37 @@ public class NotificationDisplay {
         String message;
         String numberString;
         if (number != 1) {
-            message = MESSAGE;
+            message = DISPLAY_NOTIFICATIONS;
         } else {
-            message = MESSAGE.substring(0, MESSAGE.length() - 1);
+            message = DISPLAY_NOTIFICATIONS.substring(0, DISPLAY_NOTIFICATIONS.length() - 1);
         }
         if (number > 9) {
             numberString = "9+";
         } else {
             numberString = Integer.toString(number);
         }
-        getLcd().writeText(LCDFont.DIMENSIONS_6X12, 0, 0, "                    "
-            + "                                                              ");
+        getLcd().clear();
         getLcd().writeText(LCDFont.DIMENSIONS_6X12, 0, 0,
             String.format(message, numberString));
+    }
+
+    /**
+     * Display a given notification.
+     * @param notification Notification to display
+     * @throws PhidgetException Thrown if error with a phidget
+     */
+    public void displayNotification(Notification notification)
+        throws PhidgetException {
+        getLcd().clear();
+        if (notification != null) {
+            getLcd().writeText(LCDFont.DIMENSIONS_6X12, 0, 0,
+                notification.getName());
+            getLcd().writeText(LCDFont.DIMENSIONS_6X12, 6, 0,
+                notification.getTitle());
+        } else {
+            getLcd().writeText(LCDFont.DIMENSIONS_6X12, 0, 0,
+                NO_NOTIFICATIONS);
+        }
     }
 
     /**

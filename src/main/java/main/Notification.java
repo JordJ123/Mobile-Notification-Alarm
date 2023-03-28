@@ -53,6 +53,30 @@ public class Notification {
     }
 
     /**
+     * Gets the name.
+     * @return Name
+     */
+    public String getName() {
+        return appName;
+    }
+
+    /**
+     * Gets the message.
+     * @return Message
+     */
+    public String getMessage() {
+        return message;
+    }
+
+    /**
+     * Gets the title.
+     * @return Title
+     */
+    public String getTitle() {
+        return title;
+    }
+
+    /**
      * Gets if the notification is active.
      * @return Notification
      */

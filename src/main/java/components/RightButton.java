@@ -27,7 +27,7 @@ public class RightButton extends Button {
     public void enableSettingsModeSelect() {
         buttonAction(() -> {
             try {
-                Main.setMode(Main.Mode.SETTINGS);
+                Main.setMode(Main.Mode.EXTRA);
             } catch (PhidgetException e) {
                 e.printStackTrace();
             }
