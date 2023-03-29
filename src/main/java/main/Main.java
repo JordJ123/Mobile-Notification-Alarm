@@ -7,6 +7,7 @@ import components.MiddleButton;
 import components.NotificationDisplay;
 import components.RightButton;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import phidget.*;
 import phidget.slider.ExtendedSlider;
 import socket.ServerSocket;
@@ -79,9 +80,10 @@ public class Main {
             case READ:
                 setCurrentNotification(0);
                 getLeftButton().enableNumberModeSelect();
-                getMiddleButton().enableNextNotification();
-                getRightButton().enableDismissNotification();
-                getNotificationDisplay().enableReadMode();
+                getMiddleButton().enableDismissNotification();
+                getRightButton().enableNextNotification();
+                getNotificationDisplay().displayNotification(getNotification(
+                    getCurrentNotification()));
                 break;
             case EXTRA:
                 getLeftButton().buttonAction(null);
@@ -182,8 +184,12 @@ public class Main {
      * @param index Index of the notification
      * @return Notification of the given index
      */
-    private static Notification getNotification(int index) {
-        return notifications.toArray(new Notification[]{})[index];
+    private static @Nullable Notification getNotification(int index) {
+        if (notifications.size() > 0) {
+            return notifications.toArray(new Notification[]{})[index];
+        } else {
+            return null;
+        }
     }
 
     /**
@@ -367,13 +373,13 @@ public class Main {
                 case READ:
                     if (isDeleted) {
                         if (index <= getCurrentNotification()) {
-                            if (getCurrentNotification()
-                                == getNotifications().size()) {
-                                setCurrentNotification(0);
+                            if (getCurrentNotification() != 0) {
+                                setCurrentNotification(
+                                    getCurrentNotification() - 1);
                             }
                             if (getNotifications().size() != 0) {
                                 getNotificationDisplay().displayNotification(
-                                    notification);
+                                    getNotification(getCurrentNotification()));
                             } else {
                                 getNotificationDisplay().displayNotification(
                                     null);
@@ -424,7 +430,16 @@ public class Main {
      */
     public static void nextNotification() throws PhidgetException {
         getReadWriteLock().writeLock().lock();
-        next();
+        if (getNotifications().size() > 0) {
+            setCurrentNotification(getCurrentNotification() + 1);
+            if (getCurrentNotification() == getNotifications().size()) {
+                setCurrentNotification(0);
+            }
+            getNotificationDisplay().displayNotification(
+                getNotification(getCurrentNotification()));
+        } else {
+            getNotificationDisplay().displayNotification(null);
+        }
         getReadWriteLock().writeLock().unlock();
     }
 
@@ -437,25 +452,13 @@ public class Main {
         Notification notification = getNotification(getCurrentNotification());
         getBuffer().add(notification.getKey());
         getNotifications().remove(notification);
-        next();
-        getReadWriteLock().writeLock().unlock();
-    }
-
-    /**
-     * Sets the next notification.
-     * @throws PhidgetException Thrown if error with the notification display
-     */
-    private static void next() throws PhidgetException {
-        if (getNotifications().size() > 0) {
-            setCurrentNotification(getCurrentNotification() + 1);
-            if (getCurrentNotification() == getNotifications().size()) {
-                setCurrentNotification(0);
-            }
-            getNotificationDisplay().displayNotification(
-                getNotification(getCurrentNotification()));
-        } else {
-            getNotificationDisplay().displayNotification(null);
+        if (getCurrentNotification() != 0 &&
+            getCurrentNotification() == getNotifications().size()) {
+            setCurrentNotification(getCurrentNotification() - 1);
         }
+        getNotificationDisplay().displayNotification(
+            getNotification(getCurrentNotification()));
+        getReadWriteLock().writeLock().unlock();
     }
 
 }

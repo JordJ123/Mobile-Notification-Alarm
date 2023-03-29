@@ -35,15 +35,16 @@ public class RightButton extends Button {
     }
 
     /**
-     * Sets the functionality of the force sensor to dismiss the notification
+     * Gets the next notification.
      */
-    public void enableDismissNotification() {
+    public void enableNextNotification() {
         buttonAction(() -> {
             try {
-                Main.dismissNotification();
-            } catch (PhidgetException e) {
+                Main.nextNotification();
+            } catch (Exception e) {
                 e.printStackTrace();
             }
+
         });
     }
 

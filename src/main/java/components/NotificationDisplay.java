@@ -159,15 +159,6 @@ public class NotificationDisplay {
     }
 
     /**
-     * Enables the read mode.
-     * @throws PhidgetException Thrown if error with a phidget
-     */
-    public void enableReadMode() throws PhidgetException {
-        getLcd().clear();
-        getLcd().writeText(LCDFont.DIMENSIONS_6X12, 0, 0, "Read");
-    }
-
-    /**
      * Enables the alarm mode.
      * @throws PhidgetException Thrown if error with a phidget
      */
@@ -187,7 +178,8 @@ public class NotificationDisplay {
         if (number != 1) {
             message = DISPLAY_NOTIFICATIONS;
         } else {
-            message = DISPLAY_NOTIFICATIONS.substring(0, DISPLAY_NOTIFICATIONS.length() - 1);
+            message = DISPLAY_NOTIFICATIONS.substring(
+                0, DISPLAY_NOTIFICATIONS.length() - 1);
         }
         if (number > 9) {
             numberString = "9+";
@@ -210,7 +202,7 @@ public class NotificationDisplay {
         if (notification != null) {
             getLcd().writeText(LCDFont.DIMENSIONS_6X12, 0, 0,
                 notification.getName());
-            getLcd().writeText(LCDFont.DIMENSIONS_6X12, 6, 0,
+            getLcd().writeText(LCDFont.DIMENSIONS_6X12, 0, 1,
                 notification.getTitle());
         } else {
             getLcd().writeText(LCDFont.DIMENSIONS_6X12, 0, 0,

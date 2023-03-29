@@ -22,8 +22,9 @@ public class Notification {
      */
     public Notification(String id, boolean isActiveNotification) {
         setId(id);
+        this.key = "key " + id;
         this.appName = "Facebook";
-        this.title = "Title";
+        this.title = "Title " + id;
         this.message = "Message";
         this.isActiveNotification = isActiveNotification;
     }

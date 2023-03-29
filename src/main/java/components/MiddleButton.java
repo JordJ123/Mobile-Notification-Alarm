@@ -34,16 +34,15 @@ public class MiddleButton extends Button {
     }
 
     /**
-     * Gets the next notification.
+     * Sets the functionality of the force sensor to dismiss the notification
      */
-    public void enableNextNotification() {
+    public void enableDismissNotification() {
         buttonAction(() -> {
             try {
-                Main.nextNotification();
-            } catch (Exception e) {
+                Main.dismissNotification();
+            } catch (PhidgetException e) {
                 e.printStackTrace();
             }
-
         });
     }
 
