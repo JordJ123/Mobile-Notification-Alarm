@@ -2,13 +2,15 @@ package socket;
 
 import com.google.gson.Gson;
 import org.jetbrains.annotations.NotNull;
+
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.PrintWriter;
 import java.net.Socket;
 import java.net.SocketException;
-import java.util.concurrent.locks.ReentrantReadWriteLock;
+import java.net.SocketTimeoutException;
+import java.util.HashSet;
 
 /**
  * Represents a connection to a destination socket.
@@ -23,7 +25,7 @@ public class Connection {
     private Socket socket;
     private BufferedReader input;
     private PrintWriter output;
-    private ReentrantReadWriteLock socketLock = new ReentrantReadWriteLock();
+    private HashSet<Long> sendingIds = new HashSet<>();
 
 
     /**
@@ -42,36 +44,35 @@ public class Connection {
         setOutput(new PrintWriter(socket.getOutputStream(), true));
         new Thread(() -> {
             while (true) {
-                socketLock.writeLock().lock();
                 try {
-                    if (getInput().ready()) {
-                        String message = getInput().readLine();
-                        if (message != null) {
-                            if (!message.equals("ack")) {
-                                getOutput().println("ack");
-                                inputRunnable.run(message);
-                            }
+                    String message = getInput().readLine();
+                    if (message != null) {
+                        if (!message.startsWith("ackId=")) {
+                            String[] data = message.split(" sendingId=");
+                            getOutput().println("ackId=" + data[1]);
+                            inputRunnable.run(data[0]);
                         } else {
-                            if (onDisconnectRunnable != null) {
-                                onDisconnectRunnable.run();
-                            }
-                            socketLock.writeLock().unlock();
-                            break; //Client socket is closed
+                            sendingIds.remove(Long.parseLong(
+                                message.replace("ackId=", "")));
                         }
+                    } else {
+                        if (onDisconnectRunnable != null) {
+                            onDisconnectRunnable.run();
+                        }
+                        break; //Client socket is closed
                     }
+                } catch (SocketTimeoutException ste) {
+                    //No input
                 } catch (SocketException se) {
-                    se.printStackTrace();
                     if (se.getMessage().endsWith("Connection reset")) {
                         try {
                             close();
                         } catch (IOException e) {
                             e.printStackTrace();
                         }
-                        socketLock.writeLock().unlock();
                         break; //Host Socket is closed
                     }
                     if (se.getMessage().endsWith("Socket closed")) {
-                        socketLock.writeLock().unlock();
                         break; //This socket is closed
                     } else {
                         se.printStackTrace();
@@ -79,7 +80,6 @@ public class Connection {
                 } catch (Exception exception) {
                     exception.printStackTrace();
                 }
-                socketLock.writeLock().unlock();
             }
         }).start();
     }
@@ -133,25 +133,32 @@ public class Connection {
     }
 
     /**
+     * Gets sending ids
+     * @return Gets the sending ids
+     */
+    private HashSet<Long> getSendingIds() {
+        return sendingIds;
+    }
+
+    /**
      * Sends the data over the server connection.
      * @param data Data
-     * @return True if the send sent was a success
+     * @return True if sending was a success
      */
-    public boolean send(Object data) throws IOException {
-        socketLock.writeLock().lock();
+    public boolean send(Object data) {
+        Long sendingId = System.currentTimeMillis();
+        getSendingIds().add(sendingId);
         if (isActive()) {
-            getOutput().println(new Gson().toJson(data));
+            getOutput().println(new Gson().toJson(data)
+                + " sendingId=" + sendingId);
             long startTime = System.currentTimeMillis();
             while (System.currentTimeMillis() - startTime <= SEND_WAIT) {
-                if (getInput().ready()) {
-                    if (getInput().readLine().equals("ack")) {
-                        socketLock.writeLock().unlock();
-                        return true;
-                    }
+                if (!sendingIds.contains(sendingId)) {
+                    return true;
                 }
             }
         }
-        socketLock.writeLock().unlock();
+        getSendingIds().remove(sendingId);
         return false;
     }
 

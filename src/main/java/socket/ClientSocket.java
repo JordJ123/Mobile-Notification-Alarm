@@ -29,7 +29,6 @@ public class ClientSocket extends Socket {
                         java.net.Socket socket;
                         while (true) {
                             try {
-                                System.out.println("Connect");
                                 socket = new java.net.Socket(host, port);
                                 break;
                             } catch (ConnectException ce) {
