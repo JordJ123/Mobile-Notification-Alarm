@@ -155,16 +155,14 @@ public class NotificationDisplay {
      */
     public void enableNumberMode() throws PhidgetException {
         displayNotifications(Main.getNotifications().size());
-        getLcd().writeText(LCDFont.DIMENSIONS_6X12, 4, 1, "Dismiss All");
     }
 
     /**
      * Enables the alarm mode.
      * @throws PhidgetException Thrown if error with a phidget
      */
-    public void enableSettingsMode() throws PhidgetException {
-        getLcd().clear();
-        getLcd().writeText(LCDFont.DIMENSIONS_6X12, 0, 0, "Settings");
+    public void enableExtraMode() throws PhidgetException {
+        getLcd().displayText("Settings", true);
     }
 
     /**
@@ -186,27 +184,19 @@ public class NotificationDisplay {
         } else {
             numberString = Integer.toString(number);
         }
-        getLcd().clear();
-        getLcd().writeText(LCDFont.DIMENSIONS_6X12, 0, 0,
-            String.format(message, numberString));
+        getLcd().displayText(String.format(message, numberString), true);
     }
 
     /**
      * Display a given notification.
      * @param notification Notification to display
-     * @throws PhidgetException Thrown if error with a phidget
      */
-    public void displayNotification(Notification notification)
-        throws PhidgetException {
-        getLcd().clear();
+    public void displayNotification(Notification notification) {
         if (notification != null) {
-            getLcd().writeText(LCDFont.DIMENSIONS_6X12, 0, 0,
-                notification.getName());
-            getLcd().writeText(LCDFont.DIMENSIONS_6X12, 0, 1,
-                notification.getTitle());
+            getLcd().displayText(notification.getName(), true);
+            getLcd().displayText(notification.getTitle(), false);
         } else {
-            getLcd().writeText(LCDFont.DIMENSIONS_6X12, 0, 0,
-                NO_NOTIFICATIONS);
+            getLcd().displayText(NO_NOTIFICATIONS, true);
         }
     }
 

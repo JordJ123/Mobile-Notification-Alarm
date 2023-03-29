@@ -42,8 +42,8 @@ public class Connection {
         setOutput(new PrintWriter(socket.getOutputStream(), true));
         new Thread(() -> {
             while (true) {
+                socketLock.writeLock().lock();
                 try {
-                    socketLock.writeLock().lock();
                     if (getInput().ready()) {
                         String message = getInput().readLine();
                         if (message != null) {
@@ -55,20 +55,23 @@ public class Connection {
                             if (onDisconnectRunnable != null) {
                                 onDisconnectRunnable.run();
                             }
+                            socketLock.writeLock().unlock();
                             break; //Client socket is closed
                         }
                     }
-                    socketLock.writeLock().unlock();
                 } catch (SocketException se) {
+                    se.printStackTrace();
                     if (se.getMessage().endsWith("Connection reset")) {
                         try {
                             close();
                         } catch (IOException e) {
                             e.printStackTrace();
                         }
+                        socketLock.writeLock().unlock();
                         break; //Host Socket is closed
                     }
                     if (se.getMessage().endsWith("Socket closed")) {
+                        socketLock.writeLock().unlock();
                         break; //This socket is closed
                     } else {
                         se.printStackTrace();
@@ -76,6 +79,7 @@ public class Connection {
                 } catch (Exception exception) {
                     exception.printStackTrace();
                 }
+                socketLock.writeLock().unlock();
             }
         }).start();
     }

@@ -24,7 +24,7 @@ public class Notification {
         setId(id);
         this.key = "key " + id;
         this.appName = "Facebook";
-        this.title = "Title " + id;
+        this.title = "Title " + id + " and this is a very long title";
         this.message = "Message";
         this.isActiveNotification = isActiveNotification;
     }

@@ -89,7 +89,7 @@ public class Main {
                 getLeftButton().buttonAction(null);
                 getMiddleButton().buttonAction(null);
                 getRightButton().enableNumberModeSelect();
-                getNotificationDisplay().enableSettingsMode();
+                getNotificationDisplay().enableExtraMode();
                 break;
             default:
                 throw new EnumConstantNotPresentException(Mode.class,
