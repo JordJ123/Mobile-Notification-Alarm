@@ -1,9 +1,8 @@
 package components;
 
-import com.phidget22.LCDFont;
 import com.phidget22.PhidgetException;
-import main.Main;
-import main.Notification;
+import mobile.Device;
+import mobile.Notification;
 import phidget.ExtendedLCD;
 import phidget.ExtendedMotionSensor;
 import phidget.slider.ExtendedSlider;
@@ -19,6 +18,7 @@ public class NotificationDisplay {
     private static final long ON_DURATION = 5000;
     private static final String DISPLAY_NOTIFICATIONS = "%s New Notifications";
     private static final String NO_NOTIFICATIONS = "No Notifications";
+    private static final String NO_DEVICES = "No Devices";
 
     //Attributes
     private ExtendedLCD lcd;
@@ -150,27 +150,10 @@ public class NotificationDisplay {
     }
 
     /**
-     * Enables the number mode.
-     * @throws PhidgetException Thrown if error with a phidget
-     */
-    public void enableNumberMode() throws PhidgetException {
-        displayNotifications(Main.getNotifications().size());
-    }
-
-    /**
-     * Enables the alarm mode.
-     * @throws PhidgetException Thrown if error with a phidget
-     */
-    public void enableExtraMode() throws PhidgetException {
-        getLcd().displayText("Settings", true);
-    }
-
-    /**
      * Displays the information of the notifications onto the lcd screen.
      * @param number Number of notifications to display
-     * @throws PhidgetException Thrown if error with a phidget
      */
-    public void displayNotifications(int number) throws PhidgetException {
+    public void displayNotifications(int number) {
         String message;
         String numberString;
         if (number != 1) {
@@ -185,18 +168,38 @@ public class NotificationDisplay {
             numberString = Integer.toString(number);
         }
         getLcd().displayText(String.format(message, numberString), true);
+        getLcd().displayText(ExtendedLCD.CLEAR_TEXT, false);
     }
 
     /**
      * Display a given notification.
      * @param notification Notification to display
      */
-    public void displayNotification(Notification notification) {
+    public void displayNotification(int deviceIndex, Notification notification)
+        throws PhidgetException {
         if (notification != null) {
-            getLcd().displayText(notification.getName(), true);
+            getLcd().displayText("Device " + (deviceIndex + 1) + " - "
+                + notification.getName(), true);
             getLcd().displayText(notification.getTitle(), false);
         } else {
             getLcd().displayText(NO_NOTIFICATIONS, true);
+            getLcd().clearText(false);
+        }
+    }
+
+    /**
+     * Display a given device.
+     * @param device Device to display
+     * @param index Index of the device
+     */
+    public void displayDevice(int index, Device device)
+        throws PhidgetException {
+        if (device != null) {
+            getLcd().displayText("Device " + (index + 1), true);
+            getLcd().displayText("Name: " + device.getName(), false);
+        } else {
+            getLcd().displayText(NO_DEVICES, true);
+            getLcd().clearText(false);
         }
     }
 

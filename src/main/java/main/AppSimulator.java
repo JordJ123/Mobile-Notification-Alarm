@@ -1,5 +1,7 @@
 package main;
 
+import mobile.Device;
+import mobile.Notification;
 import socket.ClientSocket;
 import socket.Socket;
 
@@ -15,7 +17,7 @@ import java.util.Scanner;
 public class AppSimulator {
 
     //CONSTANT
-    private static String HOSTNAME = "192.168.128.83";
+    private static String HOSTNAME = "192.168.1.249";
 
     /**
      * Main method.
@@ -24,7 +26,8 @@ public class AppSimulator {
     public static void main(String[] args) {
 
         //Setup
-        ClientSocket socket = new ClientSocket(Socket.TEST_HOSTNAME,
+        Device device = new Device();
+        ClientSocket socket = new ClientSocket(HOSTNAME,
             Socket.TEST_PORT, System.out::println);
         Scanner in = new Scanner(System.in);
         ArrayList<Notification> buffer = new ArrayList<>();
@@ -32,6 +35,11 @@ public class AppSimulator {
         //Continuously tries to send notification data
         new Thread(() -> {
             try {
+                while (true) {
+                    if (socket.send(device)) {
+                        break;
+                    }
+                }
                 while (true) {
                     Thread.sleep(100);
                     if (!buffer.isEmpty()) {
@@ -64,7 +72,7 @@ public class AppSimulator {
                     canSend = true;
                 }
                 if (canSend) {
-                    buffer.add(new Notification(id, isActive));
+                    buffer.add(new Notification(id, device.getId(), isActive));
                 } else {
                     System.out.println(
                         "Please enter the correct option");

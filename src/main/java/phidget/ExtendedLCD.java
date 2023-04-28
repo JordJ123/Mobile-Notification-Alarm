@@ -13,7 +13,7 @@ public class ExtendedLCD extends LCD {
     //CONSTANTS
     private static final int COLUMN_COUNT = 20;
     private static final int LETTER_DURATION = 500;
-    private static final String CLEAR_TEXT = "                    ";
+    public static final String CLEAR_TEXT = "                    ";
 
     //Attributes
     private Thread[] lineThreads = {null, null};
@@ -89,6 +89,21 @@ public class ExtendedLCD extends LCD {
             }
         }));
         getLineThread(line).start();
+    }
+
+    /**
+     * Clears a line of text.
+     * @param isFirstLine True if the first line is to be clear
+     * @throws PhidgetException Thrown if error with the lcd
+     */
+    public void clearText(boolean isFirstLine) throws PhidgetException {
+        int line;
+        if (isFirstLine) {
+            line = 0;
+        } else {
+            line = 1;
+        }
+        writeText(LCDFont.DIMENSIONS_6X12, 0, line, CLEAR_TEXT);
     }
 
 }

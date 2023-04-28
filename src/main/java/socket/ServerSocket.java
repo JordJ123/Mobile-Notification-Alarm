@@ -32,6 +32,7 @@ public class ServerSocket extends Socket {
                     getClientConnections().add(new Connection(
                         getServerSocket().accept(), inputRunnable,
                         onDisconnectRunnable));
+                    System.out.println("Connected!");
                 } catch (SocketException se) {
                     if (se.getMessage().endsWith("socket closed")) {
                         break; // Attempted socket to connect to is closed

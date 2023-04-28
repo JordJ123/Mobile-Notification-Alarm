@@ -1,4 +1,4 @@
-package main;
+package mobile;
 
 import java.util.Objects;
 
@@ -10,6 +10,7 @@ public class Notification {
 
     //Attributes
     private String id;
+    private String deviceId;
     private String key;
     private String appName;
     private String title;
@@ -20,8 +21,10 @@ public class Notification {
      * Creates a notification.
      * @param id ID of the notification
      */
-    public Notification(String id, boolean isActiveNotification) {
+    public Notification(String id, String deviceId,
+        boolean isActiveNotification) {
         setId(id);
+        this.deviceId = deviceId;
         this.key = "key " + id;
         this.appName = "Facebook";
         this.title = "Title " + id + " and this is a very long title";
@@ -43,6 +46,14 @@ public class Notification {
      */
     public String getId() {
         return id;
+    }
+
+    /**
+     * Gets the device id.
+     * @return Device id
+     */
+    public String getDeviceId() {
+        return deviceId;
     }
 
     /**
@@ -115,6 +126,7 @@ public class Notification {
     public String toString() {
         return "Notification{" +
             "id=" + getId() + ", " +
+            "deviceId=" + getDeviceId() + ", " +
             "isActiveNotification=" + getIsActiveNotification() +
             '}';
     }

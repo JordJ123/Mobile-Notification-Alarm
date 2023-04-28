@@ -1,20 +1,24 @@
 package main;
 
 import com.google.gson.Gson;
+import com.google.gson.JsonSyntaxException;
 import com.phidget22.PhidgetException;
 import components.LeftButton;
 import components.MiddleButton;
 import components.NotificationDisplay;
 import components.RightButton;
+import mobile.Device;
+import mobile.Notification;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import phidget.*;
 import phidget.slider.ExtendedSlider;
 import socket.ServerSocket;
-import socket.Socket;
+
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 
@@ -42,7 +46,10 @@ public class Main {
     private static Mode mode = Mode.NUMBER;
     private static LinkedHashSet<Notification> notifications
         = new LinkedHashSet<>();
+    private static LinkedHashMap<String, Device> devices
+        = new LinkedHashMap<>();
     private static int currentNotification = 0;
+    private static int currentDevice = 0;
     private static ArrayList<String> buffer = new ArrayList<>();
     private static LeftButton leftButton;
     private static MiddleButton middleButton;
@@ -59,7 +66,7 @@ public class Main {
      * Possible modes the alarm could be in.
      */
     public enum Mode {
-        NUMBER, READ, EXTRA
+        NUMBER, READ, DEVICES
     }
 
     /**
@@ -75,21 +82,27 @@ public class Main {
                 getLeftButton().enableReadModeSelect();
                 getMiddleButton().enableDismissAll();
                 getRightButton().enableExtraModeSelect();
-                getNotificationDisplay().enableNumberMode();
+                getNotificationDisplay().displayNotifications(
+                    getNotifications().size());
                 break;
             case READ:
                 setCurrentNotification(0);
                 getLeftButton().enableNumberModeSelect();
                 getMiddleButton().enableDismissNotification();
                 getRightButton().enableNextNotification();
-                getNotificationDisplay().displayNotification(getNotification(
-                    getCurrentNotification()));
+                Notification currentNotification = getNotification(
+                    getCurrentNotification());
+                getNotificationDisplay().displayNotification(
+                    deviceIndex(currentNotification), currentNotification);
                 break;
-            case EXTRA:
+            case DEVICES:
+                setCurrentDevice(0);
                 getLeftButton().buttonAction(null);
                 getMiddleButton().buttonAction(null);
                 getRightButton().enableNumberModeSelect();
-                getNotificationDisplay().enableExtraMode();
+                getNotificationDisplay().displayDevice(getCurrentDevice(),
+                    getDevices().values().toArray(new Device[0])
+                        [getCurrentDevice()]);
                 break;
             default:
                 throw new EnumConstantNotPresentException(Mode.class,
@@ -104,6 +117,14 @@ public class Main {
      */
     private static void setCurrentNotification(int index) {
         Main.currentNotification = index;
+    }
+
+    /**
+     * Sets the current device.
+     * @param index Index of the current device
+     */
+    private static void setCurrentDevice(int index) {
+        Main.currentDevice = index;
     }
 
     /**
@@ -180,6 +201,14 @@ public class Main {
     }
 
     /**
+     * Gets the devices.
+     * @return Devices
+     */
+    public static LinkedHashMap<String, Device> getDevices() {
+        return devices;
+    }
+
+    /**
      * Gets the notifications of the given index.
      * @param index Index of the notification
      * @return Notification of the given index
@@ -198,6 +227,14 @@ public class Main {
      */
     private static int getCurrentNotification() {
         return currentNotification;
+    }
+
+    /**
+     * Gets the current device.
+     * @return Current device
+     */
+    private static int getCurrentDevice() {
+        return currentDevice;
     }
 
     /**
@@ -326,12 +363,23 @@ public class Main {
         }).start();
 
         //Sets the code for the alarm
-        setServerSocket(new ServerSocket(Socket.TEST_PORT,
+        setServerSocket(new ServerSocket(8888,
             message -> {
-                Notification notification
-                    = new Gson().fromJson(message, Notification.class);
-                System.out.println(notification);
-                updateNotifications(notification);
+                try {
+                    Notification notification
+                        = new Gson().fromJson(message, Notification.class);
+                    if (notification.getDeviceId() != null) {
+                        System.out.println(notification);
+                        updateNotifications(notification);
+                    } else {
+                        Device device = new Gson().fromJson(message,
+                            Device.class);
+                        System.out.println(device);
+                        devices.put(device.getId(), device);
+                    }
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
             },
             () -> {
                 getReadWriteLock().writeLock().lock();
@@ -371,6 +419,14 @@ public class Main {
                         getNotifications().size());
                     break;
                 case READ:
+                    if (isAdded) {
+                        if (getNotifications().size() == 1) {
+                            Notification currentNotification
+                                = getNotification(0);
+                            getNotificationDisplay().displayNotification(
+                                deviceIndex(currentNotification), currentNotification);
+                        }
+                    }
                     if (isDeleted) {
                         if (index <= getCurrentNotification()) {
                             if (getCurrentNotification() != 0) {
@@ -378,16 +434,19 @@ public class Main {
                                     getCurrentNotification() - 1);
                             }
                             if (getNotifications().size() != 0) {
+                                Notification currentNotification
+                                    = getNotification(getCurrentNotification());
                                 getNotificationDisplay().displayNotification(
-                                    getNotification(getCurrentNotification()));
+                                    deviceIndex(currentNotification),
+                                    currentNotification);
                             } else {
-                                getNotificationDisplay().displayNotification(
+                                getNotificationDisplay().displayNotification(-1,
                                     null);
                             }
                         }
                     }
                     break;
-                case EXTRA:
+                case DEVICES:
                     break;
                 default:
                     throw new EnumConstantNotPresentException(Mode.class,
@@ -406,9 +465,8 @@ public class Main {
 
     /**
      * Clears all the notifications.
-     * @throws PhidgetException Thrown if error with a notification
      */
-    public static void clearNotifications() throws PhidgetException {
+    public static void clearNotifications() {
         getReadWriteLock().writeLock().lock();
         if (getNotifications().size() > 0) {
             String[] keys = new String[getNotifications().size()];
@@ -435,10 +493,12 @@ public class Main {
             if (getCurrentNotification() == getNotifications().size()) {
                 setCurrentNotification(0);
             }
+            Notification currentNotification = getNotification(
+                getCurrentNotification());
             getNotificationDisplay().displayNotification(
-                getNotification(getCurrentNotification()));
+                deviceIndex(currentNotification), currentNotification);
         } else {
-            getNotificationDisplay().displayNotification(null);
+            getNotificationDisplay().displayNotification(-1, null);
         }
         getReadWriteLock().writeLock().unlock();
     }
@@ -456,9 +516,24 @@ public class Main {
             getCurrentNotification() == getNotifications().size()) {
             setCurrentNotification(getCurrentNotification() - 1);
         }
+        Notification currentNotification = getNotification(
+            getCurrentNotification());
         getNotificationDisplay().displayNotification(
-            getNotification(getCurrentNotification()));
+            deviceIndex(currentNotification), currentNotification);
         getReadWriteLock().writeLock().unlock();
+    }
+
+    /**
+     * Gets the device index of the notification.
+     * @return Device index
+     */
+    public static int deviceIndex(Notification notification) {
+        if (notification != null) {
+            return new ArrayList<>(devices.keySet()).indexOf(
+                notification.getDeviceId());
+        } else {
+            return -1;
+        }
     }
 
 }
