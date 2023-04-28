@@ -10,7 +10,7 @@ public class Notification {
 
     //Attributes
     private String id;
-    private String deviceId;
+    private Device device;
     private String key;
     private String appName;
     private String title;
@@ -21,10 +21,10 @@ public class Notification {
      * Creates a notification.
      * @param id ID of the notification
      */
-    public Notification(String id, String deviceId,
+    public Notification(String id, Device device,
         boolean isActiveNotification) {
         setId(id);
-        this.deviceId = deviceId;
+        this.device = device;
         this.key = "key " + id;
         this.appName = "Facebook";
         this.title = "Title " + id + " and this is a very long title";
@@ -49,11 +49,11 @@ public class Notification {
     }
 
     /**
-     * Gets the device id.
-     * @return Device id
+     * Gets the device.
+     * @return Device
      */
-    public String getDeviceId() {
-        return deviceId;
+    public Device getDevice() {
+        return device;
     }
 
     /**
@@ -106,16 +106,17 @@ public class Notification {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         Notification that = (Notification) o;
-        return getId().equals(that.getId());
+        return getId().equals(that.getId())
+            && getDevice().equals(that.getDevice());
     }
 
     /**
-     * Gets the hashcode of the value.
-     * @return Returns the value
+     * Hashcode of the object.
+     * @return Hashcode
      */
     @Override
     public int hashCode() {
-        return Objects.hash(getId());
+        return Objects.hash(getId(), getDevice());
     }
 
     /**
@@ -126,7 +127,7 @@ public class Notification {
     public String toString() {
         return "Notification{" +
             "id=" + getId() + ", " +
-            "deviceId=" + getDeviceId() + ", " +
+            "deviceId=" + getDevice().getId() + ", " +
             "isActiveNotification=" + getIsActiveNotification() +
             '}';
     }

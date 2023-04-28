@@ -46,4 +46,18 @@ public class MiddleButton extends Button {
         });
     }
 
+    /**
+     * Sets the functionality of the force sensor to be the next device option.
+     */
+    public void enableNextDevice() {
+        buttonAction(() -> {
+            try {
+                Main.nextDevice();
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+
+        });
+    }
+
 }

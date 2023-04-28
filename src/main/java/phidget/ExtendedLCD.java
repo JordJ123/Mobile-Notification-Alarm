@@ -64,6 +64,9 @@ public class ExtendedLCD extends LCD {
         } else {
             line = 1;
         }
+        if (getLineThread(line) != null) {
+            getLineThread(line).stop();
+        }
         setLineThread(line, new Thread(() -> {
             try {
                 writeText(LCDFont.DIMENSIONS_6X12, 0, line, CLEAR_TEXT);
@@ -102,6 +105,9 @@ public class ExtendedLCD extends LCD {
             line = 0;
         } else {
             line = 1;
+        }
+        if (getLineThread(line) != null) {
+            getLineThread(line).stop();
         }
         writeText(LCDFont.DIMENSIONS_6X12, 0, line, CLEAR_TEXT);
     }

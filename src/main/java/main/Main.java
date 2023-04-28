@@ -1,7 +1,6 @@
 package main;
 
 import com.google.gson.Gson;
-import com.google.gson.JsonSyntaxException;
 import com.phidget22.PhidgetException;
 import components.LeftButton;
 import components.MiddleButton;
@@ -98,7 +97,7 @@ public class Main {
             case DEVICES:
                 setCurrentDevice(0);
                 getLeftButton().buttonAction(null);
-                getMiddleButton().buttonAction(null);
+                getMiddleButton().enableNextDevice();
                 getRightButton().enableNumberModeSelect();
                 getNotificationDisplay().displayDevice(getCurrentDevice(),
                     getDevices().values().toArray(new Device[0])
@@ -368,15 +367,10 @@ public class Main {
                 try {
                     Notification notification
                         = new Gson().fromJson(message, Notification.class);
-                    if (notification.getDeviceId() != null) {
-                        System.out.println(notification);
-                        updateNotifications(notification);
-                    } else {
-                        Device device = new Gson().fromJson(message,
-                            Device.class);
-                        System.out.println(device);
-                        devices.put(device.getId(), device);
-                    }
+                    Device device = notification.getDevice();
+                    System.out.println(notification);
+                    devices.put(device.getId(), device);
+                    updateNotifications(notification);
                 } catch (Exception e) {
                     e.printStackTrace();
                 }
@@ -524,13 +518,34 @@ public class Main {
     }
 
     /**
+     * Sets the current device to the next device.
+     * @throws PhidgetException Thrown if error with the notification display
+     */
+    public static void nextDevice() throws PhidgetException {
+        getReadWriteLock().writeLock().lock();
+        if (getDevices().size() > 0) {
+            setCurrentDevice(getCurrentDevice() + 1);
+            if (getCurrentDevice() == getDevices().size()) {
+                setCurrentDevice(0);
+            }
+            getNotificationDisplay().displayDevice(getCurrentDevice(),
+                getDevices().values().toArray(new Device[0])
+                    [getCurrentDevice()]);
+
+        } else {
+            getNotificationDisplay().displayDevice(-1, null);
+        }
+        getReadWriteLock().writeLock().unlock();
+    }
+
+    /**
      * Gets the device index of the notification.
      * @return Device index
      */
     public static int deviceIndex(Notification notification) {
         if (notification != null) {
-            return new ArrayList<>(devices.keySet()).indexOf(
-                notification.getDeviceId());
+            return new ArrayList<>(devices.values()).indexOf(
+                notification.getDevice());
         } else {
             return -1;
         }

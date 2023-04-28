@@ -35,7 +35,7 @@ public class RightButton extends Button {
     }
 
     /**
-     * Gets the next notification.
+     * Sets the functionality of the force sensor to be the next n option
      */
     public void enableNextNotification() {
         buttonAction(() -> {
@@ -49,7 +49,7 @@ public class RightButton extends Button {
     }
 
     /**
-     * Sets the functionality of the force sensor to be the number select option.
+     * Sets the functionality of the force sensor to be the number option.
      */
     public void enableNumberModeSelect() {
         buttonAction(() -> {
