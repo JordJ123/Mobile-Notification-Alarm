@@ -43,6 +43,7 @@ public class Main {
 
     //Static Attributes
     private static Mode mode = Mode.NUMBER;
+    private static boolean shouldDisplayDeviceName = true;
     private static LinkedHashSet<Notification> notifications
         = new LinkedHashSet<>();
     private static LinkedHashMap<String, Device> devices
@@ -95,19 +96,29 @@ public class Main {
                     deviceIndex(currentNotification), currentNotification);
                 break;
             case DEVICES:
+                setShouldDisplayDeviceName(true);
                 setCurrentDevice(0);
-                getLeftButton().buttonAction(null);
+                getLeftButton().enableSwitchDeviceDisplay();
                 getMiddleButton().enableNextDevice();
                 getRightButton().enableNumberModeSelect();
                 getNotificationDisplay().displayDevice(getCurrentDevice(),
                     getDevices().values().toArray(new Device[0])
-                        [getCurrentDevice()]);
+                        [getCurrentDevice()], getShouldDisplayDeviceName());
                 break;
             default:
                 throw new EnumConstantNotPresentException(Mode.class,
                     Main.mode.toString());
         }
         getReadWriteLock().writeLock().unlock();
+    }
+
+    /**
+     * Sets if the devices mode should display the device name.
+     * @param shouldDisplayDeviceName True if device name should be displayed
+     */
+    private static void setShouldDisplayDeviceName(
+        boolean shouldDisplayDeviceName) {
+        Main.shouldDisplayDeviceName = shouldDisplayDeviceName;
     }
 
     /**
@@ -250,6 +261,14 @@ public class Main {
      */
     private static Mode getMode() {
         return mode;
+    }
+
+    /**
+     * Gets if the devices mode should display the device name.
+     * @return True if device name should be displayed
+     */
+    private static boolean getShouldDisplayDeviceName() {
+        return shouldDisplayDeviceName;
     }
 
     /**
@@ -504,6 +523,7 @@ public class Main {
     public static void dismissNotification() throws PhidgetException {
         getReadWriteLock().writeLock().lock();
         Notification notification = getNotification(getCurrentNotification());
+        assert notification != null;
         getBuffer().add(notification.getKey());
         getNotifications().remove(notification);
         if (getCurrentNotification() != 0 &&
@@ -514,6 +534,15 @@ public class Main {
             getCurrentNotification());
         getNotificationDisplay().displayNotification(
             deviceIndex(currentNotification), currentNotification);
+        getReadWriteLock().writeLock().unlock();
+    }
+
+    public static void switchDeviceDisplay() throws PhidgetException {
+        getReadWriteLock().writeLock().lock();
+        setShouldDisplayDeviceName(!getShouldDisplayDeviceName());
+        getNotificationDisplay().displayDevice(getCurrentDevice(),
+            getDevices().values().toArray(new Device[0])
+                [getCurrentDevice()], getShouldDisplayDeviceName());
         getReadWriteLock().writeLock().unlock();
     }
 
@@ -530,10 +559,10 @@ public class Main {
             }
             getNotificationDisplay().displayDevice(getCurrentDevice(),
                 getDevices().values().toArray(new Device[0])
-                    [getCurrentDevice()]);
+                    [getCurrentDevice()], getShouldDisplayDeviceName());
 
         } else {
-            getNotificationDisplay().displayDevice(-1, null);
+            getNotificationDisplay().displayDevice(-1, null, false);
         }
         getReadWriteLock().writeLock().unlock();
     }

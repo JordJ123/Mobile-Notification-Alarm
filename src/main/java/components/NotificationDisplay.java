@@ -192,11 +192,15 @@ public class NotificationDisplay {
      * @param device Device to display
      * @param index Index of the device
      */
-    public void displayDevice(int index, Device device)
-        throws PhidgetException {
+    public void displayDevice(int index, Device device,
+        boolean shouldDisplayName) throws PhidgetException {
         if (device != null) {
             getLcd().displayText("Device " + (index + 1), true);
-            getLcd().displayText("Name: " + device.getName(), false);
+            if (shouldDisplayName) {
+                getLcd().displayText("Name: " + device.getName(), false);
+            } else {
+                getLcd().displayText("Location: " + device.getLocation(), false);
+            }
         } else {
             getLcd().displayText(NO_DEVICES, true);
             getLcd().clearText(false);

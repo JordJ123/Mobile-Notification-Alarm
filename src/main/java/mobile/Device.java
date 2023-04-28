@@ -19,7 +19,7 @@ public class Device {
     public Device(String id) {
         this.id = id;
         name = "Android Phone";
-        location = "My House";
+        location = "Another House";
     }
 
     /**
@@ -36,6 +36,14 @@ public class Device {
      */
     public String getName() {
         return name;
+    }
+
+    /**
+     * Gets the location.
+     * @return Location
+     */
+    public String getLocation() {
+        return location;
     }
 
     /**

@@ -24,6 +24,19 @@ public class LeftButton extends Button {
     /**
      * Sets the functionality of the force sensor to be the read select option.
      */
+    public void enableSwitchDeviceDisplay() {
+        buttonAction(() -> {
+            try {
+                Main.switchDeviceDisplay();
+            } catch (PhidgetException e) {
+                e.printStackTrace();
+            }
+        });
+    }
+
+    /**
+     * Sets the functionality of the force sensor to be the read select option.
+     */
     public void enableReadModeSelect() {
         buttonAction(() -> {
             try {
