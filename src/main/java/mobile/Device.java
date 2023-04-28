@@ -12,6 +12,7 @@ public class Device {
     private String id;
     private String name;
     private String location;
+    private int numberOfNotifications;
 
     /**
      * Creates a device
@@ -19,7 +20,15 @@ public class Device {
     public Device(String id) {
         this.id = id;
         name = "Android Phone";
-        location = "Another House";
+        location = "My House";
+    }
+
+    /**
+     * Set number of notifications.
+     * @param numberOfNotifications Number of notifications
+     */
+    public void setNumberOfNotifications(int numberOfNotifications) {
+        this.numberOfNotifications = numberOfNotifications;
     }
 
     /**
@@ -44,6 +53,14 @@ public class Device {
      */
     public String getLocation() {
         return location;
+    }
+
+    /**
+     * Gets number of notifications.
+     * @return Number of notifications
+     */
+    public int getNumberOfNotifications() {
+        return numberOfNotifications;
     }
 
     /**

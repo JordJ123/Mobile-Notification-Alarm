@@ -28,12 +28,11 @@ public class AppSimulator {
     public static void main(String[] args) {
 
         //Setup
-//        SecureRandom random = new SecureRandom();
-//        byte[] bytes = new byte[8];
-//        random.nextBytes(bytes);
-//        Device device = new Device(Base64.getUrlEncoder().withoutPadding()
-//            .encodeToString(bytes).substring(0, 8));
-        Device device = new Device("test");
+        SecureRandom random = new SecureRandom();
+        byte[] bytes = new byte[8];
+        random.nextBytes(bytes);
+        Device device = new Device(Base64.getUrlEncoder().withoutPadding()
+            .encodeToString(bytes).substring(0, 8));
         ClientSocket socket = new ClientSocket(HOSTNAME,
             Socket.TEST_PORT, System.out::println);
         Scanner in = new Scanner(System.in);
