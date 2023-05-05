@@ -1,7 +1,7 @@
 package components;
 
 import com.phidget22.PhidgetException;
-import mobile.Device;
+import mobile.DeviceInfo;
 import mobile.Notification;
 import phidget.ExtendedLCD;
 import phidget.ExtendedMotionSensor;
@@ -14,7 +14,7 @@ import phidget.slider.ExtendedSlider;
 public class NotificationDisplay {
 
     //CONSTANTS
-    private static final double MOTION_THRESHOLD = 0;
+    private static final double MOTION_THRESHOLD = 3;
     private static final long ON_DURATION = 5000;
     private static final String DISPLAY_NOTIFICATIONS = "%s New Notifications";
     private static final String NO_NOTIFICATIONS = "No Notifications";
@@ -102,8 +102,8 @@ public class NotificationDisplay {
     }
 
     /**
-     * Sets the time the device was last put on.
-     * @param onTime the device was last put on
+     * Sets the time the deviceInfo was last put on.
+     * @param onTime the deviceInfo was last put on
      */
     private void setOnTime(long onTime) {
         this.onTime = onTime;
@@ -142,8 +142,8 @@ public class NotificationDisplay {
     }
 
     /**
-     * Get the time the device was last put on
-     * @return Time the device was last put on
+     * Get the time the deviceInfo was last put on
+     * @return Time the deviceInfo was last put on
      */
     private long getOnTime() {
         return onTime;
@@ -188,18 +188,18 @@ public class NotificationDisplay {
     }
 
     /**
-     * Display a given device.
-     * @param device Device to display
-     * @param index Index of the device
+     * Display a given deviceInfo.
+     * @param deviceInfo Device to display
+     * @param index Index of the deviceInfo
      */
-    public void displayDevice(int index, Device device,
+    public void displayDevice(int index, DeviceInfo deviceInfo,
         boolean shouldDisplayName) throws PhidgetException {
-        if (device != null) {
+        if (deviceInfo != null) {
             getLcd().displayText("Device " + (index + 1), true);
             if (shouldDisplayName) {
-                getLcd().displayText("Name: " + device.getName(), false);
+                getLcd().displayText("Name: " + deviceInfo.getName(), false);
             } else {
-                getLcd().displayText("Location: " + device.getLocation(), false);
+                getLcd().displayText("Location: " + deviceInfo.getDeviceLastKnownAddress(), false);
             }
         } else {
             getLcd().displayText(NO_DEVICES, true);
@@ -213,7 +213,7 @@ public class NotificationDisplay {
      */
     private synchronized void adjustBrightness(double brightness)
         throws PhidgetException {
-        if (brightness <= 0.999 && getIsOn()) {
+        if (brightness <= 0.995 && getIsOn()) {
             getLcd().setBacklight(1);
             getLcd().setContrast(brightness);
         } else {

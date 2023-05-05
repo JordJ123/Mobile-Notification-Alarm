@@ -12,7 +12,7 @@ import phidget.PhidgetHandler;
 public class Button extends VoltageInput {
 
     //CONSTANTS
-    private static final double BUTTON_PRESSURE = 0.1;
+    private static final double BUTTON_PRESSURE = 0.01;
 
     //Attributes
     private VoltageInputVoltageChangeListener currentVIVCL;
@@ -20,7 +20,7 @@ public class Button extends VoltageInput {
 
     /**
      * Creates an extended force sensor.
-     * @param serialNumber Serial number of the device
+     * @param serialNumber Serial number of the deviceInfo
      * @param channel Channel of the output
      * @throws PhidgetException Thrown if error with the phidget
      */

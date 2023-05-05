@@ -48,7 +48,7 @@ public class LeftButton extends Button {
     }
 
     /**
-     * Sets the functionality of the force sensor to be the number select option.
+     * Sets the functionality of the sensor to be the number select option.
      */
     public void enableNumberModeSelect() {
         buttonAction(() -> {

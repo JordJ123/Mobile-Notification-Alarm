@@ -6,7 +6,7 @@ import components.LeftButton;
 import components.MiddleButton;
 import components.NotificationDisplay;
 import components.RightButton;
-import mobile.Device;
+import mobile.DeviceInfo;
 import mobile.Notification;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -15,7 +15,10 @@ import phidget.slider.ExtendedSlider;
 import socket.ServerSocket;
 
 import java.io.IOException;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 /**
@@ -26,13 +29,13 @@ public class Main {
 
     //SERIAL NUMBERS
     private static final int LCD_SERIAL_NUMBER = 39834;
-    private static final int BUTTON_1_CHANNEL = 7;
+    private static final int BUTTON_1_CHANNEL = 5;
     private static final int BUTTON_2_CHANNEL = 6;
-    private static final int BUTTON_3_CHANNEL = 5;
+    private static final int BUTTON_3_CHANNEL = 7;
+    private static final int SLIDER_CHANNEL = 0;
     private static final int BUZZER_CHANNEL = 7;
     private static final int LED_CHANNEL = 0;
     private static final int MOTION_CHANNEL = 4;
-    private static final int SLIDER_CHANNEL = 0;
     private static final int VIBRATOR_CHANNEL = 1;
 
     //VALUES
@@ -43,11 +46,11 @@ public class Main {
     private static boolean shouldDisplayDeviceName = true;
     private static LinkedHashSet<Notification> notifications
         = new LinkedHashSet<>();
-    private static LinkedHashMap<String, Device> devices
+    private static LinkedHashMap<String, DeviceInfo> devices
         = new LinkedHashMap<>();
     private static int currentNotification = 0;
     private static int currentDevice = 0;
-    private static ArrayList<String> buffer = new ArrayList<>();
+    private static ArrayList<String[]> buffer = new ArrayList<>();
     private static LeftButton leftButton;
     private static MiddleButton middleButton;
     private static RightButton rightButton;
@@ -73,6 +76,7 @@ public class Main {
      */
     public static void setMode(Mode mode) throws PhidgetException {
         getReadWriteLock().writeLock().lock();
+        System.out.print("mode set lock ");
         Main.mode = mode;
         switch (Main.mode) {
             case NUMBER:
@@ -98,7 +102,6 @@ public class Main {
                 getLeftButton().enableSwitchDeviceDisplay();
                 getMiddleButton().enableNextDevice();
                 getRightButton().enableNumberModeSelect();
-                System.out.println("devices");
                 getNotificationDisplay().displayDevice(getCurrentDevice(),
                     getDevice(getCurrentDevice()),
                     getShouldDisplayDeviceName());
@@ -107,6 +110,7 @@ public class Main {
                 throw new EnumConstantNotPresentException(Mode.class,
                     Main.mode.toString());
         }
+        System.out.print("unlock\n");
         getReadWriteLock().writeLock().unlock();
     }
 
@@ -212,7 +216,7 @@ public class Main {
      * Gets the devices.
      * @return Devices
      */
-    public static LinkedHashMap<String, Device> getDevices() {
+    public static LinkedHashMap<String, DeviceInfo> getDevices() {
         return devices;
     }
 
@@ -234,9 +238,9 @@ public class Main {
      * @param index Index of the device
      * @return Device of the given index
      */
-    private static @Nullable Device getDevice(int index) {
+    private static @Nullable DeviceInfo getDevice(int index) {
         if (devices.size() > 0) {
-            return devices.values().toArray(new Device[]{})[index];
+            return devices.values().toArray(new DeviceInfo[]{})[index];
         } else {
             return null;
         }
@@ -262,7 +266,7 @@ public class Main {
      * Gets the notifications buffer.
      * @return Notifications buffer
      */
-    public static ArrayList<String> getBuffer() {
+    public static ArrayList<String[]> getBuffer() {
         return buffer;
     }
 
@@ -380,8 +384,10 @@ public class Main {
                 while (true) {
                     Thread.sleep(100);
                     if (!getBuffer().isEmpty()) {
-                        String[] keys = getBuffer().toArray(new String[0]);
+                        System.out.println("Preparing to send keys");
+                        String[][] keys = getBuffer().toArray(new String[0][0]);
                         if (getServerSocket().send(keys)) {
+                            System.out.println("Keys sent");
                             getBuffer().removeAll(Arrays.asList(keys));
                         }
                     }
@@ -397,17 +403,12 @@ public class Main {
                 try {
                     Notification notification
                         = new Gson().fromJson(message, Notification.class);
-                    System.out.println(notification);
                     updateNotifications(notification);
                 } catch (Exception e) {
                     e.printStackTrace();
                 }
             },
-            () -> {
-                getReadWriteLock().writeLock().lock();
-                Main.getNotifications().clear();
-                getReadWriteLock().writeLock().unlock();
-            }
+            null
         ));
 
     }
@@ -419,20 +420,21 @@ public class Main {
     private static void updateNotifications(
         @NotNull Notification notification) throws PhidgetException {
         getReadWriteLock().writeLock().lock();
-        Device device = notification.getDevice();
-        if (getDevices().containsKey(device.getId())) {
-            device.setNumberOfNotifications(getDevices().get(
-                device.getId()).getNumberOfNotifications());
+        System.out.print("update notifications lock ");
+        DeviceInfo deviceInfo = notification.getDeviceInfo();
+        if (getDevices().containsKey(deviceInfo.getDeviceUniqueId())) {
+            deviceInfo.setNumberOfNotifications(getDevices().get(
+                deviceInfo.getDeviceUniqueId()).getNumberOfNotifications());
         }
-        getDevices().put(device.getId(), device);
         boolean isAdded = false;
         boolean isDeleted = false;
         int index = -1;
         if (notification.getIsActiveNotification()
             && !getNotifications().contains(notification)) {
             getNotifications().add(notification);
-            device.setNumberOfNotifications(
-                device.getNumberOfNotifications() + 1);
+            deviceInfo.setNumberOfNotifications(
+                deviceInfo.getNumberOfNotifications() + 1);
+            getDevices().put(deviceInfo.getDeviceUniqueId(), deviceInfo);
             isAdded = true;
         } else if (!notification.getIsActiveNotification()
             && getNotifications().contains(notification)) {
@@ -440,14 +442,16 @@ public class Main {
                 getNotifications());
             index = notifications.indexOf(notification);
             getNotifications().remove(notification);
-            device.setNumberOfNotifications(
-                device.getNumberOfNotifications() - 1);
-            if (device.getNumberOfNotifications() == 0) {
-                getDevices().remove(device.getId());
+            deviceInfo.setNumberOfNotifications(
+                deviceInfo.getNumberOfNotifications() - 1);
+            if (deviceInfo.getNumberOfNotifications() == 0) {
+                getDevices().remove(deviceInfo.getDeviceUniqueId());
                 if (getCurrentDevice() == getDevices().size() &&
                     getDevices().size() != 0) {
                     setCurrentDevice(getCurrentDevice() - 1);
                 }
+            } else {
+                getDevices().put(deviceInfo.getDeviceUniqueId(), deviceInfo);
             }
             isDeleted = true;
         }
@@ -487,11 +491,10 @@ public class Main {
                     }
                     break;
                 case DEVICES:
-                    Device currentDevice
+                    DeviceInfo currentDeviceInfo
                         = getDevice(getCurrentDevice());
                     getNotificationDisplay().displayDevice(getCurrentDevice(),
-                        getDevice(getCurrentDevice()),
-                        getShouldDisplayDeviceName());
+                        currentDeviceInfo, getShouldDisplayDeviceName());
                     break;
                 default:
                     throw new EnumConstantNotPresentException(Mode.class,
@@ -505,6 +508,7 @@ public class Main {
 //                getVibrator().setDutyCycle(0);
             }
         }
+        System.out.print("unlock\n");
         getReadWriteLock().writeLock().unlock();
     }
 
@@ -513,12 +517,14 @@ public class Main {
      */
     public static void clearNotifications() {
         getReadWriteLock().writeLock().lock();
+        System.out.print("clear notifications lock ");
         if (getNotifications().size() > 0) {
-            String[] keys = new String[getNotifications().size()];
+            String[][] keys = new String[getNotifications().size()][2];
             Notification[] notifications = getNotifications().toArray(
                 new Notification[0]);
             for (int i = 0; i < getNotifications().size(); i++) {
-                keys[i] = notifications[i].getKey();
+                keys[i][0] = notifications[i].getDeviceInfo().getDeviceUniqueId();
+                keys[i][1] = notifications[i].getKey();
             }
             getNotifications().clear();
             getNotificationDisplay().displayNotifications(0);
@@ -527,6 +533,7 @@ public class Main {
             getDevices().clear();
             setCurrentDevice(0);
         }
+        System.out.print("unlock\n");
         getReadWriteLock().writeLock().unlock();
     }
 
@@ -536,6 +543,7 @@ public class Main {
      */
     public static void nextNotification() throws PhidgetException {
         getReadWriteLock().writeLock().lock();
+        System.out.print("next notification lock ");
         if (getNotifications().size() > 0) {
             setCurrentNotification(getCurrentNotification() + 1);
             if (getCurrentNotification() == getNotifications().size()) {
@@ -548,6 +556,7 @@ public class Main {
         } else {
             getNotificationDisplay().displayNotification(-1, null);
         }
+        System.out.print("unlock\n");
         getReadWriteLock().writeLock().unlock();
     }
 
@@ -557,37 +566,42 @@ public class Main {
      */
     public static void dismissNotification() throws PhidgetException {
         getReadWriteLock().writeLock().lock();
+        System.out.print("dismiss notification lock ");
         Notification notification = getNotification(getCurrentNotification());
-        assert notification != null;
-        getBuffer().add(notification.getKey());
+        getBuffer().add(new String[]{notification.getDeviceInfo()
+            .getDeviceUniqueId(), notification.getKey()});
         getNotifications().remove(notification);
         if (getCurrentNotification() != 0 &&
             getCurrentNotification() == getNotifications().size()) {
             setCurrentNotification(getCurrentNotification() - 1);
         }
-        Notification currentNotification = getNotification(
-            getCurrentNotification());
-        getNotificationDisplay().displayNotification(
-            deviceIndex(currentNotification), currentNotification);
-        Device device = getDevices().get(notification.getDevice().getId());
-        device.setNumberOfNotifications(
-            device.getNumberOfNotifications() - 1);
-        if (device.getNumberOfNotifications() == 0) {
-            getDevices().remove(device.getId());
+        DeviceInfo deviceInfo = getDevices().get(notification.getDeviceInfo()
+            .getDeviceUniqueId());
+        deviceInfo.setNumberOfNotifications(
+            deviceInfo.getNumberOfNotifications() - 1);
+        if (deviceInfo.getNumberOfNotifications() == 0) {
+            getDevices().remove(deviceInfo.getDeviceUniqueId());
             if (getCurrentDevice() == getDevices().size() &&
                 getDevices().size() != 0) {
                 setCurrentDevice(getCurrentDevice() - 1);
             }
         }
+        Notification currentNotification = getNotification(
+            getCurrentNotification());
+        getNotificationDisplay().displayNotification(
+            deviceIndex(currentNotification), currentNotification);
+        System.out.print("unlock\n");
         getReadWriteLock().writeLock().unlock();
     }
 
     public static void switchDeviceDisplay() throws PhidgetException {
         getReadWriteLock().writeLock().lock();
+        System.out.print("switch device display lock ");
         setShouldDisplayDeviceName(!getShouldDisplayDeviceName());
         getNotificationDisplay().displayDevice(getCurrentDevice(),
             getDevice(getCurrentDevice()),
             getShouldDisplayDeviceName());
+        System.out.print("unlock\n");
         getReadWriteLock().writeLock().unlock();
     }
 
@@ -597,6 +611,7 @@ public class Main {
      */
     public static void nextDevice() throws PhidgetException {
         getReadWriteLock().writeLock().lock();
+        System.out.print("next device lock ");
         if (getDevices().size() > 0) {
             setCurrentDevice(getCurrentDevice() + 1);
             if (getCurrentDevice() == getDevices().size()) {
@@ -608,6 +623,7 @@ public class Main {
         } else {
             getNotificationDisplay().displayDevice(-1, null, false);
         }
+        System.out.print("unlock\n");
         getReadWriteLock().writeLock().unlock();
     }
 
@@ -618,7 +634,7 @@ public class Main {
     public static int deviceIndex(Notification notification) {
         if (notification != null) {
             return new ArrayList<>(devices.values()).indexOf(
-                notification.getDevice());
+                notification.getDeviceInfo());
         } else {
             return -1;
         }

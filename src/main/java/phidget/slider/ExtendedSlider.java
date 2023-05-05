@@ -17,7 +17,7 @@ public class ExtendedSlider extends VoltageRatioInput {
 
     /**
      * Creates an extended slider.
-     * @param serialNumber Serial number of the device
+     * @param serialNumber Serial number of the deviceInfo
      * @param channel Channel of the output
      * @throws PhidgetException Thrown if error with the phidget
      */

@@ -10,21 +10,21 @@ public class Notification {
 
     //Attributes
     private String id;
-    private Device device;
     private String key;
     private String appName;
     private String title;
     private String message;
     private boolean isActiveNotification;
+    private DeviceInfo deviceInfo;
 
     /**
      * Creates a notification.
      * @param id ID of the notification
      */
-    public Notification(String id, Device device,
+    public Notification(String id, DeviceInfo deviceInfo,
         boolean isActiveNotification) {
         setId(id);
-        this.device = device;
+        this.deviceInfo = deviceInfo;
         this.key = "key " + id;
         this.appName = "Facebook";
         this.title = "Title " + id + " and this is a very long title";
@@ -52,8 +52,8 @@ public class Notification {
      * Gets the device.
      * @return Device
      */
-    public Device getDevice() {
-        return device;
+    public DeviceInfo getDeviceInfo() {
+        return deviceInfo;
     }
 
     /**
@@ -107,7 +107,7 @@ public class Notification {
         if (o == null || getClass() != o.getClass()) return false;
         Notification that = (Notification) o;
         return getId().equals(that.getId())
-            && getDevice().equals(that.getDevice());
+            && getDeviceInfo().equals(that.getDeviceInfo());
     }
 
     /**
@@ -116,7 +116,7 @@ public class Notification {
      */
     @Override
     public int hashCode() {
-        return Objects.hash(getId(), getDevice());
+        return Objects.hash(getId(), getDeviceInfo());
     }
 
     /**
@@ -127,7 +127,7 @@ public class Notification {
     public String toString() {
         return "Notification{" +
             "id=" + getId() + ", " +
-            "deviceId=" + getDevice().getId() + ", " +
+            "deviceId=" + getDeviceInfo().getDeviceUniqueId() + ", " +
             "isActiveNotification=" + getIsActiveNotification() +
             '}';
     }

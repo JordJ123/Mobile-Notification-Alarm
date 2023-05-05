@@ -30,10 +30,13 @@ public class ClientSocket extends Socket {
                         while (true) {
                             try {
                                 socket = new java.net.Socket(host, port);
+                                System.out.println("Connected!");
                                 break;
                             } catch (ConnectException ce) {
                                 if (ce.getMessage().endsWith(
-                                    "Connection refused: connect")) {
+                                    "Connection refused: connect")
+                                    || ce.getMessage().endsWith(
+                                    "(Connection refused)")) {
                                     //Host does not exist
                                 } else {
                                     ce.printStackTrace();

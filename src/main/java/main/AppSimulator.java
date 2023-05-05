@@ -1,14 +1,12 @@
 package main;
 
-import mobile.Device;
+import com.google.gson.Gson;
+import mobile.DeviceInfo;
 import mobile.Notification;
 import socket.ClientSocket;
 import socket.Socket;
-
 import java.io.IOException;
-import java.security.SecureRandom;
 import java.util.ArrayList;
-import java.util.Base64;
 import java.util.NoSuchElementException;
 import java.util.Scanner;
 
@@ -19,7 +17,7 @@ import java.util.Scanner;
 public class AppSimulator {
 
     //CONSTANT
-    private static String HOSTNAME = "192.168.1.249";
+    private static String HOSTNAME = "localhost";
 
     /**
      * Main method.
@@ -28,13 +26,16 @@ public class AppSimulator {
     public static void main(String[] args) {
 
         //Setup
-        SecureRandom random = new SecureRandom();
-        byte[] bytes = new byte[8];
-        random.nextBytes(bytes);
-        Device device = new Device(Base64.getUrlEncoder().withoutPadding()
-            .encodeToString(bytes).substring(0, 8));
+        DeviceInfo deviceInfo = new DeviceInfo("dwudhwudh");
         ClientSocket socket = new ClientSocket(HOSTNAME,
-            Socket.TEST_PORT, System.out::println);
+            Socket.TEST_PORT, input -> {
+                String[][] keys = new Gson().fromJson(input, String[][].class);
+                for (String[] key : keys) {
+                    if (deviceInfo.getDeviceUniqueId().equals(key[0])) {
+                        System.out.println(key[1]);
+                    }
+                }
+            });
         Scanner in = new Scanner(System.in);
         ArrayList<Notification> buffer = new ArrayList<>();
 
@@ -73,7 +74,7 @@ public class AppSimulator {
                     canSend = true;
                 }
                 if (canSend) {
-                    buffer.add(new Notification(id, device, isActive));
+                    buffer.add(new Notification(id, deviceInfo, isActive));
                 } else {
                     System.out.println(
                         "Please enter the correct option");

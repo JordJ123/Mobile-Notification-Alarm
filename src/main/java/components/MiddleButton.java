@@ -56,7 +56,6 @@ public class MiddleButton extends Button {
             } catch (Exception e) {
                 e.printStackTrace();
             }
-
         });
     }
 
